@@ -65,7 +65,11 @@ async function engineTurn() {
     onInfo: (line) => {
       const m = line.match(/ depth (\d+).* score (cp|mate) (-?\d+)/);
       if (m) {
-        const score = m[2] === 'mate' ? `#${m[3]}` : `${(m[3] / 100).toFixed(2)}`;
+        // UCI scores are from the side-to-move's perspective (the engine, which
+        // is Black here). Negate so the readout is always from White's (the
+        // player's) point of view: positive = good for you.
+        const raw = -parseInt(m[3], 10);
+        const score = m[2] === 'mate' ? `#${raw}` : (raw / 100).toFixed(2);
         infoEl.textContent = `depth ${m[1]} · eval ${score}`;
       }
     },

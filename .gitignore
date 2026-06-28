@@ -1,0 +1,4 @@
+# Local scratch / test artifacts — never committed
+scratchpad-*
+*.local.*
+.DS_Store

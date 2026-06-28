@@ -18,8 +18,9 @@
 import { Chessground } from '../vendor/chessgroundx/chessground.js';
 import {
   SIZE_LIMITS, compile, editorSpec, standardSetupFen, assembleFen,
-} from './variant-config.js?v=5';
-import { validate } from './rules.js?v=5';
+} from './variant-config.js?v=6';
+import { validate } from './rules.js?v=6';
+import { syncHash, shareUrl, listSaved, saveEntry, removeEntry, getEntry } from './share.js?v=6';
 
 const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
 const DEFAULTS = { width: 8, height: 8 };
@@ -65,6 +66,13 @@ export function initEditor({ onPlay }) {
   const flipBtn = document.getElementById('ed-flip');
   const fenIn = document.getElementById('ed-fen');
   const fenBtn = document.getElementById('ed-fen-load');
+  const shareBtn = document.getElementById('ed-share');
+  const nameIn = document.getElementById('ed-name');
+  const saveBtn = document.getElementById('ed-save');
+  const libRow = document.getElementById('ed-library-row');
+  const libSel = document.getElementById('ed-library');
+  const libLoadBtn = document.getElementById('ed-load-saved');
+  const libDelBtn = document.getElementById('ed-delete-saved');
 
   let cg = null;
   let mounted = false;
@@ -105,13 +113,16 @@ export function initEditor({ onPlay }) {
     return assembleFen(cg.getFen(), { stm: turn, castling: deriveCastling() });
   }
 
-  function compiledNow() {
-    return compile(editorSpec({ width: dims.width, height: dims.height, startFen: fullFen() }));
+  function compiledFor(fen) {
+    return compile(editorSpec({ width: dims.width, height: dims.height, startFen: fen }));
   }
 
   function revalidate() {
     if (!cg) return null;
-    lastCheck = validate(compiledNow());
+    const fen = fullFen();
+    // Keep the URL in sync so a refresh (and "Copy link") preserves the position.
+    syncHash(fen);
+    lastCheck = validate(compiledFor(fen));
     if (lastCheck.ok) {
       statusEl.textContent = `✓ Valid ${dims.width}×${dims.height} — ready to play.`;
       statusEl.className = 'status ok';
@@ -282,13 +293,67 @@ export function initEditor({ onPlay }) {
   }
 
   function play() {
-    const compiled = compiledNow();
+    const compiled = compiledFor(fullFen());
     if (!validate(compiled).ok) {
       revalidate();
       return false;
     }
     onPlay(compiled);
     return true;
+  }
+
+  // --- share + library ------------------------------------------------------
+
+  function flashStatus(msg, cls) {
+    statusEl.textContent = msg;
+    statusEl.className = 'status ' + (cls || '');
+  }
+
+  async function copyLink() {
+    const url = shareUrl(fullFen()); // current position (hash is already live)
+    try {
+      await navigator.clipboard.writeText(url);
+      flashStatus('✓ Link copied to clipboard.', 'ok');
+    } catch {
+      flashStatus('Copy the link from the address bar.', '');
+    }
+  }
+
+  function refreshLibrary() {
+    const saved = listSaved();
+    libSel.innerHTML = '';
+    for (const e of saved) {
+      const opt = document.createElement('option');
+      opt.value = String(e.id);
+      opt.textContent = e.name;
+      libSel.appendChild(opt);
+    }
+    libRow.classList.toggle('hidden', saved.length === 0);
+  }
+
+  function doSave(rawName) {
+    const name = (rawName || '').trim() || `${dims.width}×${dims.height} position`;
+    const entry = saveEntry(name, fullFen());
+    if (!entry) {
+      flashStatus('Could not save (storage unavailable).', 'bad');
+      return null;
+    }
+    if (nameIn) nameIn.value = '';
+    refreshLibrary();
+    libSel.value = String(entry.id);
+    flashStatus(`✓ Saved “${entry.name}”.`, 'ok');
+    return entry;
+  }
+
+  function loadSaved(id) {
+    const entry = getEntry(id);
+    if (entry) loadFen(entry.fen);
+    return entry;
+  }
+
+  function deleteSaved(id) {
+    removeEntry(id);
+    refreshLibrary();
   }
 
   // --- wire controls --------------------------------------------------------
@@ -302,6 +367,11 @@ export function initEditor({ onPlay }) {
   resetBtn.addEventListener('click', () => mount(placementFor(dims.width, dims.height)));
   flipBtn.addEventListener('click', () => cg && cg.toggleOrientation());
   fenBtn.addEventListener('click', () => loadFen(fenIn.value));
+  shareBtn.addEventListener('click', copyLink);
+  saveBtn.addEventListener('click', () => doSave(nameIn ? nameIn.value : ''));
+  libLoadBtn.addEventListener('click', () => loadSaved(parseInt(libSel.value, 10)));
+  libDelBtn.addEventListener('click', () => deleteSaved(parseInt(libSel.value, 10)));
+  refreshLibrary();
   playBtn.addEventListener('click', play);
 
   // chessgroundx needs real layout bounds, which a display:none board lacks, so
@@ -337,6 +407,11 @@ export function initEditor({ onPlay }) {
     reset() { mount(placementFor(dims.width, dims.height)); return lastCheck; },
     setTurn,
     loadFen,
+    link() { return shareUrl(fullFen()); },
+    save(name) { return doSave(name); },
+    listSaved,
+    loadSaved,
+    deleteSaved,
     getState() {
       return {
         width: dims.width, height: dims.height, turn,

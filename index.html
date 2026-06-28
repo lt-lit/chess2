@@ -41,7 +41,7 @@
   <link rel="stylesheet" href="vendor/chessgroundx/assets/chessground.base.css" />
   <link rel="stylesheet" href="vendor/chessgroundx/assets/chessground.brown.css" />
   <link rel="stylesheet" href="css/pieces.css" />
-  <link rel="stylesheet" href="css/app.css?v=5" />
+  <link rel="stylesheet" href="css/app.css?v=6" />
 </head>
 <body>
   <main>
@@ -156,6 +156,22 @@
         <button id="ed-fen-load" class="ghost">Load</button>
       </div>
 
+      <!-- Share + personal library (Session 2c). The shareable unit is the FEN:
+           "Copy link" puts …#fen=… in the URL; Save stores it in localStorage. -->
+      <div class="controls">
+        <button id="ed-share" class="ghost">Copy link</button>
+        <input id="ed-name" type="text" class="name-input" placeholder="Save as…" />
+        <button id="ed-save" class="ghost">Save</button>
+      </div>
+
+      <div class="controls hidden" id="ed-library-row">
+        <label>Saved
+          <select id="ed-library"></select>
+        </label>
+        <button id="ed-load-saved" class="ghost">Load</button>
+        <button id="ed-delete-saved" class="ghost">Delete</button>
+      </div>
+
       <p id="ed-status" class="status"></p>
       <button id="ed-play">Play this position</button>
     </section>
@@ -167,6 +183,6 @@
     </p>
   </main>
 
-  <script type="module" src="src/main.js?v=5"></script>
+  <script type="module" src="src/main.js?v=6"></script>
 </body>
 </html>

@@ -224,6 +224,7 @@ button:disabled {
 }
 
 .fen-input { width: min(60vw, 280px); }
+.name-input { width: min(40vw, 160px); }
 
 /* Piece palette. The container carries .cg-wrap so the cburnett images (scoped
    to .cg-wrap piece.color.role) apply to the swatches; these rules override the

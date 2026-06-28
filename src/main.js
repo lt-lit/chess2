@@ -3,11 +3,12 @@
 // opponent is the FSF WASM engine. Everything variant-specific is described in
 // src/variants.js so this file stays mostly variant-agnostic.
 import { Chessground } from '../vendor/chessgroundx/chessground.js';
-import { initRules, Game, validate } from './rules.js?v=5';
-import { initEngine, configure, newGame, getBestMove } from './engine.js?v=5';
-import { VARIANTS, getVariant, pocketRoles } from './variants.js?v=5';
-import { compile } from './variant-config.js?v=5';
-import { initEditor } from './editor.js?v=5';
+import { initRules, Game, validate } from './rules.js?v=6';
+import { initEngine, configure, newGame, getBestMove } from './engine.js?v=6';
+import { VARIANTS, getVariant, pocketRoles } from './variants.js?v=6';
+import { compile } from './variant-config.js?v=6';
+import { initEditor } from './editor.js?v=6';
+import { readHash } from './share.js?v=6';
 
 const boardEl = document.getElementById('board');
 const pocketTopEl = document.getElementById('pocket-top');
@@ -354,6 +355,13 @@ async function main() {
   modePlayBtn.addEventListener('click', () => setMode('play'));
   modeEditorBtn.addEventListener('click', () => setMode('editor'));
   await startNewGame();
+
+  // A shared link (…#fen=…) opens straight into the editor with that position.
+  const shared = readHash();
+  if (shared) {
+    setMode('editor');
+    editor.loadFen(shared);
+  }
 }
 
 main();

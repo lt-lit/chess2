@@ -225,7 +225,11 @@ Ordered by risk and dependency: prove the scary part first, then build outward.
 - Ship the shared **validation gate** utility.
 - No new assets. Highest technical risk lives here.
 
-### Session 2 — Board editor: geometry + free setup
+### Session 2 — Board editor: geometry + free setup ✅ complete
+
+> **Status: complete (2a + 2b + 2c all shipped).** Requirements **1 & 2** are
+> delivered end-to-end with standard pieces, no new assets: resize the board,
+> freely build a position, validate it against FSF, play it, and share/save it.
 
 Delivers requirements **1 & 2** end-to-end, standard pieces only, no assets.
 **Split into 2a / 2b / 2c** — risk-first: prove the spine on the simplest input,
@@ -302,11 +306,22 @@ Mini 5×5 string in `variants.js` is typed by hand). 2a front-loads the latter t
   (`castlingKingFile`, X-FEN) is deferred to Session 3 — a deliberate limitation.
 - *Ship:* full standard-piece position editor.
 
-**2c — Persistence + share.**
+**2c — Persistence + share. ✅ done.**
 
-- Serialize **compact editor state** (dims + FEN + flags) — *not* the raw
-  `.ini` — to the **URL hash**, with **localStorage** as a named library on top.
-  Load-from-hash on boot.
+> **Status: complete.** New `src/share.js`. The shareable unit turned out to be
+> just the **full FEN** — it already encodes the size (files × ranks), side to
+> move, and (since the editor re-derives castling from placement) everything
+> needed to reconstruct the state, so no separate dims/flags struct is needed.
+> The editor live-syncs the position into the URL hash (`…#fen=…`, via
+> `replaceState` so it doesn't grow history); "Copy link" copies it; a shared
+> link boots straight into the editor with that position. A localStorage library
+> (`pg.editor.library`) saves named positions with Load/Delete, persisting across
+> reloads. Verified headless: hash live-sync + boot restore, the library
+> save/load/delete lifecycle, and persistence across reload. (`?v=6`.)
+
+- Serialize **compact editor state** (just the full FEN — it already carries
+  dims + side-to-move + position) — *not* the raw `.ini` — to the **URL hash**,
+  with **localStorage** as a named library on top. Load-from-hash on boot.
 - *Ship:* shareable, saveable variants.
 
 **Decisions locked for Session 2:**

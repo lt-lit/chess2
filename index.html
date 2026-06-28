@@ -10,10 +10,26 @@
   <!--
     coi-serviceworker must load first. GitHub Pages can't send the COOP/COEP
     headers that SharedArrayBuffer (and thus the Fairy-Stockfish WASM) needs,
-    so this shim supplies them client-side. On first visit it may auto-reload
-    the page once while the service worker installs.
+    so this shim supplies them client-side. On first visit it auto-reloads the
+    page once while the service worker installs.
+
+    The shim file MUST live at the site root (next to index.html): a service
+    worker can only control pages at or below its own path, so a vendored copy
+    in a subdirectory would never control this page and would reload forever.
   -->
-  <script src="vendor/coi-serviceworker.min.js"></script>
+  <script>
+    // Safety net: if isolation is somehow never achieved, stop after a few
+    // reloads instead of looping. Reset the counter once isolated.
+    if (window.crossOriginIsolated) sessionStorage.removeItem('coiReloads');
+    window.coi = {
+      doReload() {
+        const n = +(sessionStorage.getItem('coiReloads') || 0);
+        if (n < 3) { sessionStorage.setItem('coiReloads', String(n + 1)); location.reload(); }
+        else { console.warn('coi-serviceworker: stopped reloading after 3 attempts without isolation'); }
+      },
+    };
+  </script>
+  <script src="coi-serviceworker.min.js"></script>
 
   <link rel="stylesheet" href="vendor/chessgroundx/assets/chessground.base.css" />
   <link rel="stylesheet" href="vendor/chessgroundx/assets/chessground.brown.css" />

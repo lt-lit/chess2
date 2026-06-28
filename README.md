@@ -35,9 +35,14 @@ No build step. No backend. Everything is vendored and loaded directly.
 ## SharedArrayBuffer / GitHub Pages
 
 The Fairy-Stockfish WASM build requires `SharedArrayBuffer`, which needs COOP/COEP
-response headers that GitHub Pages can't set. `vendor/coi-serviceworker.min.js`
-(loaded first in `index.html`) supplies that context client-side. On first visit
-the page may auto-reload once while the service worker installs.
+response headers that GitHub Pages can't set. `coi-serviceworker.min.js` (loaded
+first in `index.html`) supplies that context client-side. On first visit the page
+auto-reloads once while the service worker installs.
+
+The shim lives at the **repo root** on purpose: a service worker can only control
+pages at or below its own path, so a copy in `vendor/` would never control the
+root page and would reload forever. An inline reload-count guard in `index.html`
+is a safety net against any future isolation failure.
 
 The search itself runs single-threaded (`Threads=1`) for deterministic,
 reproducible moves at a given depth — what the brief wants for later WDL/balance

@@ -40,7 +40,48 @@ h1 {
   height: min(92vw, 70vh);
   margin: 0 auto;
   touch-action: none; /* let chessground handle drags without page scroll */
+  position: relative;
 }
+
+/* Pockets (crazyhouse &c). chessgroundx inserts .pocket rows above/below the
+   board; the vendored assets don't style them, so we do. Squares are sized to
+   match a board square via the --cg-width / --files vars chessgroundx sets. */
+.cg-wrap .pocket {
+  display: flex;
+  justify-content: center;
+  width: var(--cg-width);
+  height: calc(var(--cg-width) / var(--files));
+  margin: 3px auto;
+}
+.cg-wrap .pocket square {
+  position: relative;
+  width: calc(var(--cg-width) / var(--files));
+  height: calc(var(--cg-width) / var(--files));
+  display: block;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.cg-wrap .pocket piece {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+}
+.cg-wrap .pocket piece[data-nb='0'] { opacity: 0.25; }
+.cg-wrap .pocket piece::after {
+  content: attr(data-nb);
+  position: absolute;
+  right: 1px;
+  bottom: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 0 2px #000, 0 0 2px #000;
+}
+.cg-wrap .pocket.usable square { cursor: pointer; }
+.cg-wrap .pocket square.selected-square { background: rgba(108, 158, 99, 0.5); }
 
 .status {
   min-height: 1.2em;
@@ -93,3 +134,41 @@ button {
 }
 
 .credit a { color: #8ab0c4; }
+
+/* Live MultiPV / eval readout. */
+.lines {
+  min-height: 1.1em;
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+}
+.pvline { line-height: 1.4; }
+.pvline .sc { color: var(--fg); font-weight: 600; display: inline-block; min-width: 3.2em; text-align: right; }
+.pvline .mv { color: var(--accent); }
+.pvline .d { opacity: 0.6; font-size: 0.78rem; }
+
+/* Promotion chooser overlay, centred over the board. */
+.promo {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 20;
+}
+.promo.hidden { display: none; }
+.promo-btn {
+  font-size: 2.2rem;
+  line-height: 1;
+  width: 64px;
+  height: 64px;
+  background: #f0f0f0;
+  color: #111;
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.promo-btn:hover { background: #fff; }

@@ -1,9 +1,14 @@
-// Opponent engine — full-strength Fairy-Stockfish (WASM UCI).
+// Opponent engine — Fairy-Stockfish (WASM UCI).
 //
-// Phase 0 constraints (see design brief §3):
+// The board UI and rules layer are variant-agnostic; this module is where the
+// engine is told *which* variant to play, how hard to think, and how strong to
+// be. All of that is driven from the experiment panel via configure().
+//
+// Phase 0 invariants that still hold:
 //   - Single-threaded SEARCH (Threads=1) for reproducibility.
 //   - Classical eval only (Use NNUE = false) — no trained nets.
-//   - Full strength, always. No Skill Level / UCI_Elo capping.
+// Strength is now adjustable (full / Skill Level / UCI_Elo) instead of always
+// full, so the engine can be a beatable sparring partner while experimenting.
 //
 // The WASM build requires SharedArrayBuffer, which plain GitHub Pages can't
 // grant via headers; coi-serviceworker (loaded in index.html) supplies the
@@ -23,6 +28,10 @@ function send(cmd) {
   sf.postMessage(cmd);
 }
 
+function setoption(name, value) {
+  send(`setoption name ${name} value ${value}`);
+}
+
 // Resolve once a line satisfying `until` arrives after sending `cmd`.
 function command(cmd, until) {
   return new Promise((resolve) => {
@@ -35,6 +44,10 @@ function command(cmd, until) {
     listeners.add(l);
     send(cmd);
   });
+}
+
+function ready() {
+  return command('isready', (l) => l === 'readyok');
 }
 
 function loadScript(src) {
@@ -54,22 +67,50 @@ export async function initEngine() {
   sf.addMessageListener((line) => emit(line));
 
   await command('uci', (l) => l === 'uciok');
-  send('setoption name Threads value 1');
-  send('setoption name Use NNUE value false');
-  send('setoption name Hash value 64');
-  send('setoption name UCI_Variant value chess');
-  await command('isready', (l) => l === 'readyok');
+  setoption('Threads', 1);
+  setoption('Use NNUE', false);
+  setoption('Hash', 64);
+  await ready();
+}
+
+// Apply the per-game options chosen in the panel. Call before newGame().
+//   variant   { engine, chess960 } from the variant registry.
+//   multipv   how many candidate lines to report (1 = just the best move).
+//   strength  { mode: 'full' | 'skill' | 'elo', value }.
+export async function configure({ variant, multipv = 1, strength } = {}) {
+  setoption('UCI_Variant', variant.engine);
+  setoption('UCI_Chess960', !!variant.chess960);
+  setoption('MultiPV', Math.max(1, multipv));
+  applyStrength(strength || { mode: 'full' });
+  await ready();
+}
+
+function applyStrength(strength) {
+  const { mode, value } = strength;
+  if (mode === 'elo') {
+    setoption('UCI_LimitStrength', true);
+    setoption('UCI_Elo', value);
+  } else if (mode === 'skill') {
+    setoption('UCI_LimitStrength', false);
+    setoption('Skill Level', value);
+  } else {
+    // full strength
+    setoption('UCI_LimitStrength', false);
+    setoption('Skill Level', 20);
+  }
 }
 
 export function newGame() {
   send('ucinewgame');
-  return command('isready', (l) => l === 'readyok');
+  return ready();
 }
 
 // Returns the engine's best move as a UCI string for the given position.
-// Fixed depth keeps the move deterministic (single-threaded). `onInfo` (if
-// given) receives raw UCI `info` lines for a live thinking readout.
-export function getBestMove(fen, { depth = 12, onInfo } = {}) {
+// `limit` selects the search bound: { type: 'depth'|'movetime'|'nodes', value }.
+// `onInfo` (if given) receives raw UCI `info` lines for a live thinking/MultiPV
+// readout. With MultiPV > 1 the engine emits one `info … multipv N …` line per
+// candidate; the returned move is always the top one (`bestmove`).
+export function getBestMove(fen, { limit = { type: 'depth', value: 12 }, onInfo } = {}) {
   return new Promise((resolve) => {
     const l = (line) => {
       if (typeof line !== 'string') return;
@@ -81,6 +122,6 @@ export function getBestMove(fen, { depth = 12, onInfo } = {}) {
     };
     listeners.add(l);
     send('position fen ' + fen);
-    send('go depth ' + depth);
+    send(`go ${limit.type} ${limit.value}`);
   });
 }

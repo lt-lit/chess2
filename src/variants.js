@@ -21,6 +21,12 @@
 //                or null if the variant never promotes. Roles are chessgroundx
 //                role ids minus the '-piece' suffix (q,r,b,n,k...).
 //   blurb        one-liner shown under the board so you know what you're playing.
+//
+// Entries are *specs*; src/variant-config.js `compile()` turns each into the
+// shape the rest of the app consumes. Built-in variants reference an FSF variant
+// by name (`engine`/`ffish`); a `kind: 'custom'` entry instead carries its own
+// `name`, `dimensions`, `startFen`, and `ini` (variants.ini text) and is loaded
+// into both engines at runtime — the same path the Session-2 editor will drive.
 
 export const VARIANTS = [
   {
@@ -105,6 +111,32 @@ export const VARIANTS = [
     pocket: false,
     promo: null,
     blurb: 'No pawns, no checks allowed. First king to reach the 8th rank wins.',
+  },
+  {
+    // Session 1 proof-of-pipeline: a fully custom variant defined here as
+    // variants.ini text and loaded into both engines at runtime. It only uses
+    // the six standard pieces, so it needs no new art — yet it exercises custom
+    // geometry, runtime config loading, the validation gate, and the dynamic
+    // board. This is the seed the board editor grows from.
+    key: 'mini5',
+    label: 'Mini 5×5 (custom)',
+    kind: 'custom',
+    name: 'minichess5',
+    dimensions: { width: 5, height: 5 },
+    startFen: 'rnbqk/ppppp/5/PPPPP/RNBQK w - - 0 1',
+    pocket: false,
+    promo: ['q', 'r', 'b', 'n'],
+    blurb: 'A custom 5×5 board loaded at runtime from a variants.ini — proof the editor pipeline works.',
+    ini: [
+      '[minichess5:chess]',
+      'maxRank = 5',
+      'maxFile = 5',
+      'startFen = rnbqk/ppppp/5/PPPPP/RNBQK w - - 0 1',
+      'promotionRegionWhite = *5',
+      'promotionRegionBlack = *1',
+      'doubleStep = false',
+      'castling = false',
+    ].join('\n'),
   },
 ];
 

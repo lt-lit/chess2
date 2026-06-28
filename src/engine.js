@@ -73,13 +73,27 @@ export async function initEngine() {
   await ready();
 }
 
+// Custom variants reach the engine the same way the CLI loads them: a
+// variants.ini file plus the VariantPath option. We write the ini into the WASM
+// in-memory filesystem (Emscripten MEMFS, exposed as sf.FS) and point VariantPath
+// at it; Fairy-Stockfish (re)reads and registers the variants when the option is
+// set. Only rewrite when the config actually changes.
+let lastEngineIni = null;
+function loadEngineConfig(ini) {
+  if (ini === lastEngineIni) return;
+  sf.FS.writeFile('/variants.ini', ini);
+  setoption('VariantPath', '/variants.ini');
+  lastEngineIni = ini;
+}
+
 // Apply the per-game options chosen in the panel. Call before newGame().
-//   variant   { engine, chess960 } from the variant registry.
+//   compiled  a compiled variant ({ name, ini, chess960, ... }).
 //   multipv   how many candidate lines to report (1 = just the best move).
 //   strength  { mode: 'full' | 'skill' | 'elo', value }.
-export async function configure({ variant, multipv = 1, strength } = {}) {
-  setoption('UCI_Variant', variant.engine);
-  setoption('UCI_Chess960', !!variant.chess960);
+export async function configure({ compiled, multipv = 1, strength } = {}) {
+  if (compiled.ini) loadEngineConfig(compiled.ini);
+  setoption('UCI_Variant', compiled.name);
+  setoption('UCI_Chess960', !!compiled.chess960);
   setoption('MultiPV', Math.max(1, multipv));
   applyStrength(strength || { mode: 'full' });
   await ready();

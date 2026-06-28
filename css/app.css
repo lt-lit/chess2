@@ -172,3 +172,54 @@ button {
   cursor: pointer;
 }
 .promo-btn:hover { background: #fff; }
+
+/* --- mode switch (Play / Editor) ---------------------------------------- */
+
+.modes {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 0 0 14px;
+}
+.mode-btn {
+  background: #3a3a3a;
+  color: var(--fg);
+  border: 1px solid #555;
+  font-weight: 600;
+}
+.mode-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #10210d;
+}
+
+.hidden { display: none; }
+
+.editor-stub {
+  max-width: 460px;
+  margin: 0 auto;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  text-align: left;
+}
+.editor-stub .muted-note { font-size: 0.82rem; opacity: 0.8; }
+
+/* --- dynamic board geometry --------------------------------------------- */
+
+/* chessgroundx positions pieces from the board's dimensions already, but the
+   vendored base/theme CSS hardcode an 8×8 grid (12.5% squares + an 8×8 SVG
+   background). Drive both from --files / --ranks (set per game in main.js) so any
+   size from 1×1 up to 12×10 renders correctly. Defaults keep 8×8 unchanged. */
+#board { --files: 8; --ranks: 8; }
+#board piece,
+#board cg-board square {
+  width: calc(100% / var(--files));
+  height: calc(100% / var(--ranks));
+}
+#board cg-board {
+  /* A dimension-agnostic checkerboard: a 2×2-square tile of light/dark, scaled
+     so one tile spans two files/ranks. Top-left square is light (matches a8). */
+  background-image: repeating-conic-gradient(#f0d9b5 0% 25%, #b58863 0% 50%);
+  background-size: calc(200% / var(--files)) calc(200% / var(--ranks));
+}

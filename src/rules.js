@@ -3,6 +3,7 @@
 // board UI only renders; every move is validated here, and the engine is only
 // ever handed FENs that originate from this module.
 import ffishModule from '../vendor/ffish/ffish.js';
+import { FEN_MESSAGES } from './variant-config.js?v=3';
 
 let ffish = null;
 
@@ -13,17 +14,61 @@ export async function initRules() {
   ffish = await ffishModule({ locateFile: (p) => 'vendor/ffish/' + p });
 }
 
+// Register a custom variant (variants.ini text) with the rules engine. Loading
+// the same config twice is harmless — later definitions just override earlier
+// ones — so callers don't need to de-dupe.
+export function loadVariantConfig(ini) {
+  ffish.loadVariantConfig(ini);
+}
+
+// The golden-rule gate: prove Fairy-Stockfish can actually evaluate this variant
+// + start position before anything tries to play it. Returns
+// { ok, code, message, fen }; `ok` is true only for FEN_OK (1).
+//
+// Note on this ffish build: variants registered via loadVariantConfig validate
+// by name immediately, but BUILT-IN variants are only registered with
+// validateFen on first Board construction. So we "warm" by-name variants with a
+// throwaway Board before validating (and read their default FEN there too).
+export function validate(compiled) {
+  if (compiled.ini) {
+    try {
+      ffish.loadVariantConfig(compiled.ini);
+    } catch (e) {
+      return { ok: false, code: null, message: 'Bad variant config: ' + e.message, fen: null };
+    }
+  }
+  let fen = compiled.startFen;
+  if (!compiled.ini) {
+    // Built-in (or chess960): warm so validateFen knows the name; take the
+    // default FEN if none was given explicitly.
+    try {
+      const warm = new ffish.Board(compiled.name);
+      if (!fen) fen = warm.fen();
+      warm.delete();
+    } catch {
+      return { ok: false, code: null, message: `Unknown variant "${compiled.name}".`, fen: null };
+    }
+  }
+  const code = ffish.validateFen(fen, compiled.name);
+  return { ok: code === 1, code, message: FEN_MESSAGES[code] || `Invalid (code ${code}).`, fen };
+}
+
 export class Game {
-  // `variant` is an entry from the variant registry (src/variants.js).
-  constructor(variant) {
-    this.v = variant;
-    if (variant.chess960) {
+  // `compiled` is a compiled variant from src/variant-config.js.
+  constructor(compiled) {
+    this.v = compiled;
+    // Custom variants must be registered with ffish before constructing a Board.
+    if (compiled.ini) ffish.loadVariantConfig(compiled.ini);
+    if (compiled.chess960) {
       // Fairy-Stockfish/ffish need an explicit shuffled start position and the
       // is960 flag (castling targets are file-relative in 960).
-      this.startFen = generateChess960Fen();
-      this.board = new ffish.Board(variant.ffish, this.startFen, true);
+      this.startFen = compiled.startFen || generateChess960Fen();
+      this.board = new ffish.Board(compiled.name, this.startFen, true);
+    } else if (compiled.startFen) {
+      this.startFen = compiled.startFen;
+      this.board = new ffish.Board(compiled.name, compiled.startFen);
     } else {
-      this.board = new ffish.Board(variant.ffish);
+      this.board = new ffish.Board(compiled.name);
       this.startFen = this.board.fen();
     }
   }

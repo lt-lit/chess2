@@ -225,16 +225,115 @@ Ordered by risk and dependency: prove the scary part first, then build outward.
 - Ship the shared **validation gate** utility.
 - No new assets. Highest technical risk lives here.
 
-### Session 2 — Board editor: geometry + free setup
+### Session 2 — Board editor: geometry + free setup ✅ complete
 
-- Editor screen: **size picker** (1–12 × 1–10), free placement with the 6
-  standard pieces, palette / eraser / clear / flip / load-FEN, side-to-move +
-  castling rights + pockets.
-- **Live red/green validation** with mapped error messages.
-- **"Play this position"** handoff (compile → validate → Play mode).
-- Save / load / share a variant (URL hash and/or localStorage).
-- Delivers requirements **1 & 2** end-to-end, standard pieces only. No assets.
-- First genuinely satisfying milestone.
+> **Status: complete (2a + 2b + 2c all shipped).** Requirements **1 & 2** are
+> delivered end-to-end with standard pieces, no new assets: resize the board,
+> freely build a position, validate it against FSF, play it, and share/save it.
+
+Delivers requirements **1 & 2** end-to-end, standard pieces only, no assets.
+**Split into 2a / 2b / 2c** — risk-first: prove the spine on the simplest input,
+then layer the laborious-but-low-risk placement UI, then persistence. Each
+sub-session ends shippable.
+
+The weight of this session is not in any one bullet of the old list — it's in
+three things the list compressed: the **placement UI** (a lichess-style editor is
+real work), **full-FEN + castling assembly** (the sharp edge), and the **`.ini`
+emitter** (net-new — today the compiler only *forwards* a hand-written ini; the
+Mini 5×5 string in `variants.js` is typed by hand). 2a front-loads the latter two.
+
+**Shared groundwork (built in 2a, used by all three):**
+
+- **`src/editor.js`** — owns its *own* chessgroundx instance, configured
+  differently from play (`movable.free`, palette, no legal-move dests). The
+  Play/Editor mode switch already exists (`main.js`); this fills the stub view.
+- **The `.ini` emitter** — `buildIni(editorState)` in `variant-config.js`, the
+  heart of the session. Synthesizes ini text from structured editor state,
+  leaning on `[<name>:chess]` inheritance exactly like Mini 5×5:
+  `maxFile`/`maxRank`/`startFen` + the geometry-coupled overrides. **Rule:
+  whenever dims ≠ 8×8, override every geometry-coupled key** (`promotionRegion`,
+  `doubleStep`/`enPassantRegion`, castling rank) — inherited chess defaults
+  (e.g. `promotionRegion = *8`) silently produce invalid/unplayable configs
+  otherwise. This is the one slice of "Session 3 rules" Session 2 cannot defer.
+- **`fullFen()` helper** — chessgroundx `getFen()` returns only placement (+
+  pockets); this appends side-to-move / castling / en passant / move counters.
+- **Extend the `?debug` handle** with editor entry points (set size, place piece,
+  read state, validate) so the editor stays headless-verifiable — same Session-1
+  discipline. Bump the cache-bust to `?v=4`.
+
+**2a — Resize → play (requirement 1 end-to-end). ✅ done.**
+
+> **Status: complete.** New `src/editor.js` (own viewOnly preview board) + the
+> `buildIni`/FEN emitter in `variant-config.js`. `main.js`'s `startGame` is now
+> the shared play path both the dropdown and the editor's "Play this position"
+> drive. Geometry CSS is aspect-ratio'd so cells stay square at any size.
+> Verified headless in Chromium: the gate accepts 8×8 / 5×5 / 6×8 / 12×10 / 3×3,
+> rejects 8×2 (touching kings) in red, an edited 6×8 board plays end-to-end and
+> the engine replies at depth, and standard chess still boots unchanged. (`?v=4`.)
+
+- Size picker (1–12 × 1–10), clamped to `SIZE_LIMITS`.
+- Auto-generate a sane standard back-rank FEN for the chosen size; preview board
+  (non-interactive for now).
+- `buildIni` + the geometry-coupled defaults above.
+- **Live red/green validation** wired to the existing `validate()` gate — mapped
+  `FEN_MESSAGES`, debounced, ffish-only (engine load deferred to the handoff).
+- **"Play this position"** — compile → validate → engine load → switch to Play
+  mode (reuses `startNewGame`'s tail).
+- *Ship:* resize the board and actually play it.
+
+**2b — Free placement (requirement 2). ✅ done.**
+
+> **Status: complete.** `src/editor.js` now drives an interactive chessgroundx
+> board: a piece palette (brush model — tap a swatch then stamp; brush taps are
+> intercepted in the capture phase before chessground's drag), plus native
+> drag-to-move and drag-off-to-delete. `fullFen()` assembles placement +
+> side-to-move + conservatively-derived castling; the gate re-runs on every
+> change. Clear / Reset / Flip / paste-a-FEN (auto-detects board size) / turn
+> toggle all wired. One subtlety worth recording: `buildIni` emits a *canonical*
+> per-geometry start FEN (not the live one) so the ini text is stable across
+> edits — `loadVariantConfig` then de-dupes instead of re-registering the variant
+> on every keystroke. Verified headless: the gate accepts/rejects edited
+> positions (lone kings ok, zero/duplicate kings rejected), load-FEN resizes
+> (5×5 ↔ 8×8), derived castling is legal end-to-end (`e1g1` + `e1c1` on a played
+> board), and live edits produce no re-registration spam. (`?v=5`.)
+
+- Palette of the 6 standard pieces + eraser; click/drag to place, clear, flip,
+  load-FEN (paste a position), side-to-move toggle.
+- Live validation now runs per-edit on the assembled full FEN.
+- **Castling — the known sharp edge.** Conservative Session-2 rule: offer
+  castling only on 8-wide boards with king+rook on standard files, emit `KQkq`;
+  everything else `castling = false`. Full custom-file castling
+  (`castlingKingFile`, X-FEN) is deferred to Session 3 — a deliberate limitation.
+- *Ship:* full standard-piece position editor.
+
+**2c — Persistence + share. ✅ done.**
+
+> **Status: complete.** New `src/share.js`. The shareable unit turned out to be
+> just the **full FEN** — it already encodes the size (files × ranks), side to
+> move, and (since the editor re-derives castling from placement) everything
+> needed to reconstruct the state, so no separate dims/flags struct is needed.
+> The editor live-syncs the position into the URL hash (`…#fen=…`, via
+> `replaceState` so it doesn't grow history); "Copy link" copies it; a shared
+> link boots straight into the editor with that position. A localStorage library
+> (`pg.editor.library`) saves named positions with Load/Delete, persisting across
+> reloads. Verified headless: hash live-sync + boot restore, the library
+> save/load/delete lifecycle, and persistence across reload. (`?v=6`.)
+
+- Serialize **compact editor state** (just the full FEN — it already carries
+  dims + side-to-move + position) — *not* the raw `.ini` — to the **URL hash**,
+  with **localStorage** as a named library on top. Load-from-hash on boot.
+- *Ship:* shareable, saveable variants.
+
+**Decisions locked for Session 2:**
+
+- **Share format:** editor-state-in-hash + localStorage library. Encoding the
+  derived `.ini` would balloon once Session 3 modifiers land — serialize the
+  source of truth, not the artifact. (Resolves open-question #3.)
+- **Castling scope:** conservative (8-wide standard only); full custom-file
+  castling rides with the Session-3 rules work.
+- **Pocket editing deferred** to Session 3 — pockets only matter once
+  `pieceDrops` exists, so hand-editing UI now would be premature. (Moved out of
+  this session's scope.)
 
 ### Session 3 — Modifiers / rules (likely split 3a + 3b)
 
@@ -266,8 +365,10 @@ Ordered by risk and dependency: prove the scary part first, then build outward.
 - **Fairy timing:** keep the Betza designer in Session 4, or pull a
   letter-glyph-fallback version into Session 3 and backfill art in Session 4?
 - **Asset source & licensing** for the fairy set (decide before Session 4).
-- **Share format:** full variant (`.ini` + FEN) serialized to URL hash vs. short
-  code vs. localStorage library — decide in Session 2.
+- ~~**Share format:** full variant (`.ini` + FEN) serialized to URL hash vs. short
+  code vs. localStorage library — decide in Session 2.~~ — **resolved (Session 2):**
+  serialize *compact editor state* (dims + FEN + flags), not the derived `.ini`,
+  to the URL hash; localStorage as a named library on top.
 - ~~**Engine `VariantPath` loading** is assumed-feasible but unproven in this
   repo~~ — **resolved in Session 1**: `sf.FS.writeFile('/variants.ini', …)` +
   `setoption VariantPath` works; the engine plays runtime-loaded custom variants.

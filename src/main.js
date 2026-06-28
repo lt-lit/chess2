@@ -3,10 +3,12 @@
 // opponent is the FSF WASM engine. Everything variant-specific is described in
 // src/variants.js so this file stays mostly variant-agnostic.
 import { Chessground } from '../vendor/chessgroundx/chessground.js';
-import { initRules, Game, validate } from './rules.js?v=3';
-import { initEngine, configure, newGame, getBestMove } from './engine.js?v=3';
-import { VARIANTS, getVariant, pocketRoles } from './variants.js?v=3';
-import { compile } from './variant-config.js?v=3';
+import { initRules, Game, validate } from './rules.js?v=6';
+import { initEngine, configure, newGame, getBestMove } from './engine.js?v=6';
+import { VARIANTS, getVariant, pocketRoles } from './variants.js?v=6';
+import { compile } from './variant-config.js?v=6';
+import { initEditor } from './editor.js?v=6';
+import { readHash } from './share.js?v=6';
 
 const boardEl = document.getElementById('board');
 const pocketTopEl = document.getElementById('pocket-top');
@@ -27,6 +29,7 @@ const editorView = document.getElementById('editor-view');
 
 let game;
 let cg;
+let editor; // the board editor (module-level so setMode can refresh it)
 let compiled; // active compiled variant for the current game
 let playerColor = 'white';
 let thinking = false;
@@ -214,9 +217,13 @@ function askPromotion(choices, done) {
 
 // --- new game ------------------------------------------------------------
 
-async function startNewGame() {
-  compiled = compile(getVariant(variantSel.value));
-  playerColor = sideSel.value === 'black' ? 'black' : 'white';
+// Start a game from an already-compiled variant. This is the shared tail of
+// both entry points — the variant dropdown (startNewGame) and the editor's
+// "Play this position" handoff — so the editor reuses the exact play path.
+// Returns false (and leaves a status message) if the golden-rule gate fails.
+async function startGame(c, color) {
+  compiled = c;
+  playerColor = color;
   thinking = false;
   lastMove = undefined;
   linesEl.innerHTML = '';
@@ -225,7 +232,7 @@ async function startNewGame() {
   const check = validate(compiled);
   if (!check.ok) {
     setStatus(`Can't start ${compiled.label}: ${check.message}`);
-    return;
+    return false;
   }
 
   game = new Game(compiled);
@@ -274,6 +281,13 @@ async function startNewGame() {
 
   // If the human took Black, the engine (White) opens.
   if (game.turnColor() === engineColor()) requestAnimationFrame(() => engineTurn());
+  return true;
+}
+
+// New game from the variant dropdown + side selector (the Play screen's path).
+async function startNewGame() {
+  const color = sideSel.value === 'black' ? 'black' : 'white';
+  await startGame(compile(getVariant(variantSel.value)), color);
 }
 
 // --- mode switch ---------------------------------------------------------
@@ -287,6 +301,9 @@ function setMode(mode) {
   editorView.classList.toggle('hidden', !editing);
   modePlayBtn.classList.toggle('active', !editing);
   modeEditorBtn.classList.toggle('active', editing);
+  // chessgroundx measures real layout bounds; the preview can't lay out while
+  // its view is display:none, so (re)paint it the moment the editor is shown.
+  if (editing && editor) editor.refresh();
 }
 
 // --- boot ----------------------------------------------------------------
@@ -309,15 +326,25 @@ async function main() {
     setStatus('Failed to load engine: ' + e.message);
     throw e;
   }
+  // The editor produces a compiled variant; main owns the Editor → Play
+  // handoff (switch screens, then start the game on the shared play path).
+  editor = initEditor({
+    onPlay: async (c) => {
+      setMode('play');
+      await startGame(c, 'white');
+    },
+  });
+
   // Read-only-ish debug handle (opt-in via ?debug) for manual inspection and
-  // automated testing — exposes the live game + move entry points. No effect on
-  // normal play.
+  // automated testing — exposes the live game + move entry points and the
+  // editor handle. No effect on normal play.
   if (new URLSearchParams(location.search).has('debug')) {
     window.__pg = {
       get game() { return game; },
       finishMove,
       drop: (role, dest) => onPlayerDrop({ role, color: playerColor }, dest),
       loadFen: (fen) => { game.setFen(fen); render(); },
+      editor,
     };
   }
 
@@ -328,6 +355,13 @@ async function main() {
   modePlayBtn.addEventListener('click', () => setMode('play'));
   modeEditorBtn.addEventListener('click', () => setMode('editor'));
   await startNewGame();
+
+  // A shared link (…#fen=…) opens straight into the editor with that position.
+  const shared = readHash();
+  if (shared) {
+    setMode('editor');
+    editor.loadFen(shared);
+  }
 }
 
 main();

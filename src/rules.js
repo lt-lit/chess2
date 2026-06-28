@@ -3,7 +3,7 @@
 // board UI only renders; every move is validated here, and the engine is only
 // ever handed FENs that originate from this module.
 import ffishModule from '../vendor/ffish/ffish.js';
-import { FEN_MESSAGES } from './variant-config.js?v=3';
+import { FEN_MESSAGES } from './variant-config.js?v=6';
 
 let ffish = null;
 
@@ -14,11 +14,16 @@ export async function initRules() {
   ffish = await ffishModule({ locateFile: (p) => 'vendor/ffish/' + p });
 }
 
-// Register a custom variant (variants.ini text) with the rules engine. Loading
-// the same config twice is harmless — later definitions just override earlier
-// ones — so callers don't need to de-dupe.
+// Register a custom variant (variants.ini text) with the rules engine.
+// Idempotent: identical config text is registered only once. Re-loading the
+// same variant name otherwise makes ffish warn ("Variant 'x' already exists"),
+// and the editor calls this on every validation — so de-dupe here, mirroring
+// the engine side's lastEngineIni guard, and callers can call freely.
+const loadedInis = new Set();
 export function loadVariantConfig(ini) {
+  if (loadedInis.has(ini)) return;
   ffish.loadVariantConfig(ini);
+  loadedInis.add(ini);
 }
 
 // The golden-rule gate: prove Fairy-Stockfish can actually evaluate this variant
@@ -32,7 +37,7 @@ export function loadVariantConfig(ini) {
 export function validate(compiled) {
   if (compiled.ini) {
     try {
-      ffish.loadVariantConfig(compiled.ini);
+      loadVariantConfig(compiled.ini);
     } catch (e) {
       return { ok: false, code: null, message: 'Bad variant config: ' + e.message, fen: null };
     }
@@ -58,7 +63,7 @@ export class Game {
   constructor(compiled) {
     this.v = compiled;
     // Custom variants must be registered with ffish before constructing a Board.
-    if (compiled.ini) ffish.loadVariantConfig(compiled.ini);
+    if (compiled.ini) loadVariantConfig(compiled.ini);
     if (compiled.chess960) {
       // Fairy-Stockfish/ffish need an explicit shuffled start position and the
       // is960 flag (castling targets are file-relative in 960).

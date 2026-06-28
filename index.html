@@ -41,7 +41,7 @@
   <link rel="stylesheet" href="vendor/chessgroundx/assets/chessground.base.css" />
   <link rel="stylesheet" href="vendor/chessgroundx/assets/chessground.brown.css" />
   <link rel="stylesheet" href="css/pieces.css" />
-  <link rel="stylesheet" href="css/app.css?v=3" />
+  <link rel="stylesheet" href="css/app.css?v=6" />
 </head>
 <body>
   <main>
@@ -62,7 +62,7 @@
            host divs rather than inside the board element. -->
       <div id="board-col" class="cg-wrap">
         <div id="pocket-top"></div>
-        <div id="board"></div>
+        <div id="board" class="cgboard"></div>
         <div id="pocket-bottom"></div>
       </div>
 
@@ -124,16 +124,56 @@
     </section>
 
     <section id="editor-view" class="hidden">
-      <p class="sub">Board editor</p>
-      <div class="editor-stub">
-        <p>The full board editor lands in the next sessions. The plumbing it
-          stands on — a variant compiler, runtime custom-variant loading into
-          both engines, the dynamic board, and the “must be FSF-evaluable”
-          validation gate — is in place now. Try the <strong>Mini 5×5 (custom)</strong>
-          variant on the Play tab to see a fully custom, runtime-loaded board.</p>
-        <p class="muted-note">Coming next: resize the board (1–12 files × 1–10
-          ranks), freely place pieces, then dial in the fairy rules.</p>
+      <p class="sub">Build a position — stamp pieces, drag to move, drag off to delete — then play it.</p>
+
+      <div class="controls">
+        <label>Files
+          <input id="ed-files" type="number" min="1" max="12" value="8" inputmode="numeric" />
+        </label>
+        <label>Ranks
+          <input id="ed-ranks" type="number" min="1" max="10" value="8" inputmode="numeric" />
+        </label>
+        <button id="ed-flip" class="ghost">Flip</button>
       </div>
+
+      <!-- Palette: cg-wrap scopes the cburnett piece images to the swatches.
+           Pieces are appended by editor.js. -->
+      <div id="ed-palette" class="palette cg-wrap"></div>
+
+      <!-- cg-wrap also scopes piece images to the editor board. -->
+      <div id="ed-board-col" class="cg-wrap">
+        <div id="ed-board" class="cgboard"></div>
+      </div>
+
+      <div class="controls">
+        <button id="ed-turn" class="ghost">White to move</button>
+        <button id="ed-clear" class="ghost">Clear</button>
+        <button id="ed-reset" class="ghost">Reset</button>
+      </div>
+
+      <div class="controls">
+        <input id="ed-fen" type="text" class="fen-input" placeholder="Paste a FEN…" />
+        <button id="ed-fen-load" class="ghost">Load</button>
+      </div>
+
+      <!-- Share + personal library (Session 2c). The shareable unit is the FEN:
+           "Copy link" puts …#fen=… in the URL; Save stores it in localStorage. -->
+      <div class="controls">
+        <button id="ed-share" class="ghost">Copy link</button>
+        <input id="ed-name" type="text" class="name-input" placeholder="Save as…" />
+        <button id="ed-save" class="ghost">Save</button>
+      </div>
+
+      <div class="controls hidden" id="ed-library-row">
+        <label>Saved
+          <select id="ed-library"></select>
+        </label>
+        <button id="ed-load-saved" class="ghost">Load</button>
+        <button id="ed-delete-saved" class="ghost">Delete</button>
+      </div>
+
+      <p id="ed-status" class="status"></p>
+      <button id="ed-play">Play this position</button>
     </section>
 
     <p class="credit">
@@ -143,6 +183,6 @@
     </p>
   </main>
 
-  <script type="module" src="src/main.js?v=3"></script>
+  <script type="module" src="src/main.js?v=6"></script>
 </body>
 </html>

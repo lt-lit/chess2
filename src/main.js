@@ -3,9 +3,10 @@
 // opponent is the FSF WASM engine. Everything variant-specific is described in
 // src/variants.js so this file stays mostly variant-agnostic.
 import { Chessground } from '../vendor/chessgroundx/chessground.js';
-import { initRules, Game } from './rules.js?v=2';
-import { initEngine, configure, newGame, getBestMove } from './engine.js?v=2';
-import { VARIANTS, getVariant, pocketRoles } from './variants.js?v=2';
+import { initRules, Game, validate } from './rules.js?v=3';
+import { initEngine, configure, newGame, getBestMove } from './engine.js?v=3';
+import { VARIANTS, getVariant, pocketRoles } from './variants.js?v=3';
+import { compile } from './variant-config.js?v=3';
 
 const boardEl = document.getElementById('board');
 const pocketTopEl = document.getElementById('pocket-top');
@@ -19,10 +20,14 @@ const sideSel = document.getElementById('side');
 const strengthSel = document.getElementById('strength');
 const limitSel = document.getElementById('limit');
 const multipvSel = document.getElementById('multipv');
+const modePlayBtn = document.getElementById('mode-play');
+const modeEditorBtn = document.getElementById('mode-editor');
+const playView = document.getElementById('play-view');
+const editorView = document.getElementById('editor-view');
 
 let game;
 let cg;
-let variant; // active variant for the current game
+let compiled; // active compiled variant for the current game
 let playerColor = 'white';
 let thinking = false;
 let lastMove; // [from, to] for highlighting
@@ -129,7 +134,7 @@ async function engineTurn() {
   thinking = true;
   render();
   // Re-apply strength / MultiPV live so the panel can be tuned mid-game.
-  await configure({ variant, multipv: readMultipv(), strength: readStrength() });
+  await configure({ compiled, multipv: readMultipv(), strength: readStrength() });
   const limit = readLimit();
   setStatus(`Fairy-Stockfish is thinking… (${limit.type} ${limit.value})`);
 
@@ -210,22 +215,36 @@ function askPromotion(choices, done) {
 // --- new game ------------------------------------------------------------
 
 async function startNewGame() {
-  variant = getVariant(variantSel.value);
+  compiled = compile(getVariant(variantSel.value));
   playerColor = sideSel.value === 'black' ? 'black' : 'white';
   thinking = false;
   lastMove = undefined;
   linesEl.innerHTML = '';
 
-  game = new Game(variant);
-  await configure({ variant, multipv: readMultipv(), strength: readStrength() });
+  // The golden-rule gate: never hand the board a position FSF can't evaluate.
+  const check = validate(compiled);
+  if (!check.ok) {
+    setStatus(`Can't start ${compiled.label}: ${check.message}`);
+    return;
+  }
+
+  game = new Game(compiled);
+  await configure({ compiled, multipv: readMultipv(), strength: readStrength() });
   await newGame();
+
+  // Drive the dynamic board geometry: square/piece size and the checkerboard
+  // derive from these vars (see css/app.css). chessgroundx positions pieces by
+  // dimensions already; these make sizing match for non-8×8 boards.
+  boardEl.style.setProperty('--files', compiled.dimensions.width);
+  boardEl.style.setProperty('--ranks', compiled.dimensions.height);
 
   const cfg = {
     fen: game.fen(),
+    dimensions: compiled.dimensions,
     orientation: playerColor,
     turnColor: game.turnColor(),
     coordinates: true,
-    pocketRoles: pocketRoles(variant),
+    pocketRoles: pocketRoles(compiled),
     movable: {
       free: false,
       color: playerColor,
@@ -250,11 +269,24 @@ async function startNewGame() {
   // chessgroundx renders pockets into these host elements (cleared above).
   cg = Chessground(boardEl, cfg, pocketTopEl, pocketBottomEl);
 
-  setStatus(`${variant.label} — you play ${playerColor}.`);
-  document.querySelector('.sub').textContent = variant.blurb;
+  setStatus(`${compiled.label} — you play ${playerColor}.`);
+  document.querySelector('#play-view .sub').textContent = compiled.blurb;
 
   // If the human took Black, the engine (White) opens.
   if (game.turnColor() === engineColor()) requestAnimationFrame(() => engineTurn());
+}
+
+// --- mode switch ---------------------------------------------------------
+
+// Play and Editor are separate screens (see BOARD-EDITOR-PLAN.md). For Session 1
+// the editor is a stub; this just toggles which view is visible so the editor
+// has a home to grow into.
+function setMode(mode) {
+  const editing = mode === 'editor';
+  playView.classList.toggle('hidden', editing);
+  editorView.classList.toggle('hidden', !editing);
+  modePlayBtn.classList.toggle('active', !editing);
+  modeEditorBtn.classList.toggle('active', editing);
 }
 
 // --- boot ----------------------------------------------------------------
@@ -293,6 +325,8 @@ async function main() {
   // Changing variant or side starts a fresh game (board/pockets must rebuild).
   variantSel.addEventListener('change', () => startNewGame());
   sideSel.addEventListener('change', () => startNewGame());
+  modePlayBtn.addEventListener('click', () => setMode('play'));
+  modeEditorBtn.addEventListener('click', () => setMode('editor'));
   await startNewGame();
 }
 

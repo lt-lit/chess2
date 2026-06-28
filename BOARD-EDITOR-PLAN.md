@@ -204,7 +204,15 @@ be generated into a separate `docs/` reference when we start Session 3.
 Ordered by risk and dependency: prove the scary part first, then build outward.
 **Each session ends with the app still fully working and shippable.**
 
-### Session 1 — Foundations (de-risking)
+### Session 1 — Foundations (de-risking) ✅ done
+
+> **Status: complete.** The engine `VariantPath` unknown is resolved — the
+> Stockfish wasm exposes its Emscripten FS (`sf.FS`); writing `/variants.ini` +
+> setting `VariantPath` loads custom variants into the engine, mirroring
+> `ffish.loadVariantConfig` on the rules side. Verified end-to-end in headless
+> Chromium: standard chess still plays through the new compiler, and a custom
+> 5×5 variant (`Mini 5×5`) loads at runtime into *both* engines, renders as 5×5,
+> and the engine replies with legal moves. New module: `src/variant-config.js`.
 
 - Build the **variant compiler** (editor state → `.ini` + `startFen`).
 - Wire it into **both** ffish (`loadVariantConfig`) and the engine
@@ -260,5 +268,10 @@ Ordered by risk and dependency: prove the scary part first, then build outward.
 - **Asset source & licensing** for the fairy set (decide before Session 4).
 - **Share format:** full variant (`.ini` + FEN) serialized to URL hash vs. short
   code vs. localStorage library — decide in Session 2.
-- **Engine `VariantPath` loading** is assumed-feasible but unproven in this repo
-  — the Session 1 spike confirms or forces a fallback.
+- ~~**Engine `VariantPath` loading** is assumed-feasible but unproven in this
+  repo~~ — **resolved in Session 1**: `sf.FS.writeFile('/variants.ini', …)` +
+  `setoption VariantPath` works; the engine plays runtime-loaded custom variants.
+- **ffish built-in variants** are lazily registered with `validateFen` only after
+  a `Board` is first constructed (custom `loadVariantConfig` variants validate
+  immediately). The gate "warms" by-name variants with a throwaway `Board`; keep
+  this in mind when the editor validates built-in-derived configs.

@@ -21,6 +21,8 @@ let sf = null;
 const listeners = new Set();
 
 function emit(line) {
+  // Opt-in raw UCI tap for debugging/automated tests (set globalThis.__sfLog).
+  if (typeof globalThis !== 'undefined' && globalThis.__sfLog) globalThis.__sfLog(line);
   for (const l of listeners) l(line);
 }
 

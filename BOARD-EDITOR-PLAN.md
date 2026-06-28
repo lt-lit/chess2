@@ -257,7 +257,15 @@ Mini 5×5 string in `variants.js` is typed by hand). 2a front-loads the latter t
   read state, validate) so the editor stays headless-verifiable — same Session-1
   discipline. Bump the cache-bust to `?v=4`.
 
-**2a — Resize → play (requirement 1 end-to-end).**
+**2a — Resize → play (requirement 1 end-to-end). ✅ done.**
+
+> **Status: complete.** New `src/editor.js` (own viewOnly preview board) + the
+> `buildIni`/FEN emitter in `variant-config.js`. `main.js`'s `startGame` is now
+> the shared play path both the dropdown and the editor's "Play this position"
+> drive. Geometry CSS is aspect-ratio'd so cells stay square at any size.
+> Verified headless in Chromium: the gate accepts 8×8 / 5×5 / 6×8 / 12×10 / 3×3,
+> rejects 8×2 (touching kings) in red, an edited 6×8 board plays end-to-end and
+> the engine replies at depth, and standard chess still boots unchanged. (`?v=4`.)
 
 - Size picker (1–12 × 1–10), clamped to `SIZE_LIMITS`.
 - Auto-generate a sane standard back-rank FEN for the chosen size; preview board

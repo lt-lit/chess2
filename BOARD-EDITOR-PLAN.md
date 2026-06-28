@@ -277,7 +277,21 @@ Mini 5×5 string in `variants.js` is typed by hand). 2a front-loads the latter t
   mode (reuses `startNewGame`'s tail).
 - *Ship:* resize the board and actually play it.
 
-**2b — Free placement (requirement 2).**
+**2b — Free placement (requirement 2). ✅ done.**
+
+> **Status: complete.** `src/editor.js` now drives an interactive chessgroundx
+> board: a piece palette (brush model — tap a swatch then stamp; brush taps are
+> intercepted in the capture phase before chessground's drag), plus native
+> drag-to-move and drag-off-to-delete. `fullFen()` assembles placement +
+> side-to-move + conservatively-derived castling; the gate re-runs on every
+> change. Clear / Reset / Flip / paste-a-FEN (auto-detects board size) / turn
+> toggle all wired. One subtlety worth recording: `buildIni` emits a *canonical*
+> per-geometry start FEN (not the live one) so the ini text is stable across
+> edits — `loadVariantConfig` then de-dupes instead of re-registering the variant
+> on every keystroke. Verified headless: the gate accepts/rejects edited
+> positions (lone kings ok, zero/duplicate kings rejected), load-FEN resizes
+> (5×5 ↔ 8×8), derived castling is legal end-to-end (`e1g1` + `e1c1` on a played
+> board), and live edits produce no re-registration spam. (`?v=5`.)
 
 - Palette of the 6 standard pieces + eraser; click/drag to place, clear, flip,
   load-FEN (paste a position), side-to-move toggle.

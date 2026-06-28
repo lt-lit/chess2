@@ -3,7 +3,7 @@
 // board UI only renders; every move is validated here, and the engine is only
 // ever handed FENs that originate from this module.
 import ffishModule from '../vendor/ffish/ffish.js';
-import { FEN_MESSAGES } from './variant-config.js?v=4';
+import { FEN_MESSAGES } from './variant-config.js?v=5';
 
 let ffish = null;
 

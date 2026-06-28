@@ -27,7 +27,7 @@ export const FEN_MESSAGES = {
   0: 'Empty FEN.',
   '-1': 'Invalid move counter.',
   '-2': 'Invalid half-move counter.',
-  '-3': 'Too many kings (max one per side).',
+  '-3': 'Wrong number of kings (need exactly one per side).',
   '-4': 'Invalid en-passant square.',
   '-5': 'Invalid castling info.',
   '-6': 'Invalid side to move.',
@@ -120,13 +120,21 @@ export function standardSetupFen(w, h) {
 // 8×8, every geometry-coupled key must be overridden — the inherited chess
 // defaults (promotion on rank 8, double-step from rank 2/7, castling) are wrong
 // or invalid on a resized board and would silently break the variant.
-export function buildIni({ width, height, startFen }) {
+//
+// The `startFen` here is the variant's *canonical* default (the standard setup
+// for the size), NOT the live edited position — it is deliberately a function of
+// (width, height) only, so the ini text is stable per geometry. That matters
+// for live editing: the editor validates on every change, and a stable ini lets
+// loadVariantConfig de-dupe instead of re-registering the variant on each edit.
+// The actual position is always passed explicitly to ffish.Board / validateFen
+// (via compiled.startFen), so this default is never the position that's played.
+export function buildIni({ width, height }) {
   const name = editorVariantName(width, height);
   const lines = [
     `[${name}:chess]`,
     `maxFile = ${width}`,
     `maxRank = ${height}`,
-    `startFen = ${startFen}`,
+    `startFen = ${standardSetupFen(width, height)}`,
     // Promotion zones: top rank for White, bottom rank for Black.
     `promotionRegionWhite = *${height}`,
     `promotionRegionBlack = *1`,
@@ -161,7 +169,7 @@ export function editorSpec({ width, height, startFen }) {
     name: editorVariantName(width, height),
     dimensions: { width, height },
     startFen: fen,
-    ini: buildIni({ width, height, startFen: fen }),
+    ini: buildIni({ width, height }),
     pocket: false,
     promo: ['q', 'r', 'b', 'n'],
     blurb: `Custom ${width}×${height} board.`,

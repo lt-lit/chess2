@@ -3,11 +3,11 @@
 // opponent is the FSF WASM engine. Everything variant-specific is described in
 // src/variants.js so this file stays mostly variant-agnostic.
 import { Chessground } from '../vendor/chessgroundx/chessground.js';
-import { initRules, Game, validate } from './rules.js?v=4';
-import { initEngine, configure, newGame, getBestMove } from './engine.js?v=4';
-import { VARIANTS, getVariant, pocketRoles } from './variants.js?v=4';
-import { compile } from './variant-config.js?v=4';
-import { initEditor } from './editor.js?v=4';
+import { initRules, Game, validate } from './rules.js?v=5';
+import { initEngine, configure, newGame, getBestMove } from './engine.js?v=5';
+import { VARIANTS, getVariant, pocketRoles } from './variants.js?v=5';
+import { compile } from './variant-config.js?v=5';
+import { initEditor } from './editor.js?v=5';
 
 const boardEl = document.getElementById('board');
 const pocketTopEl = document.getElementById('pocket-top');

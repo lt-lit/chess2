@@ -41,7 +41,7 @@
   <link rel="stylesheet" href="vendor/chessgroundx/assets/chessground.base.css" />
   <link rel="stylesheet" href="vendor/chessgroundx/assets/chessground.brown.css" />
   <link rel="stylesheet" href="css/pieces.css" />
-  <link rel="stylesheet" href="css/app.css?v=4" />
+  <link rel="stylesheet" href="css/app.css?v=5" />
 </head>
 <body>
   <main>
@@ -124,7 +124,7 @@
     </section>
 
     <section id="editor-view" class="hidden">
-      <p class="sub">Resize the board, then play it. Free placement comes next.</p>
+      <p class="sub">Build a position — stamp pieces, drag to move, drag off to delete — then play it.</p>
 
       <div class="controls">
         <label>Files
@@ -133,11 +133,27 @@
         <label>Ranks
           <input id="ed-ranks" type="number" min="1" max="10" value="8" inputmode="numeric" />
         </label>
+        <button id="ed-flip" class="ghost">Flip</button>
       </div>
 
-      <!-- cg-wrap scopes the cburnett piece images to this preview board too. -->
+      <!-- Palette: cg-wrap scopes the cburnett piece images to the swatches.
+           Pieces are appended by editor.js. -->
+      <div id="ed-palette" class="palette cg-wrap"></div>
+
+      <!-- cg-wrap also scopes piece images to the editor board. -->
       <div id="ed-board-col" class="cg-wrap">
         <div id="ed-board" class="cgboard"></div>
+      </div>
+
+      <div class="controls">
+        <button id="ed-turn" class="ghost">White to move</button>
+        <button id="ed-clear" class="ghost">Clear</button>
+        <button id="ed-reset" class="ghost">Reset</button>
+      </div>
+
+      <div class="controls">
+        <input id="ed-fen" type="text" class="fen-input" placeholder="Paste a FEN…" />
+        <button id="ed-fen-load" class="ghost">Load</button>
       </div>
 
       <p id="ed-status" class="status"></p>
@@ -151,6 +167,6 @@
     </p>
   </main>
 
-  <script type="module" src="src/main.js?v=4"></script>
+  <script type="module" src="src/main.js?v=5"></script>
 </body>
 </html>

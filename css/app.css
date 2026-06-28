@@ -216,6 +216,54 @@ button:disabled {
 .status.bad { color: #d98c8c; }
 #ed-play { margin-top: 6px; }
 
+/* Secondary (non-primary) buttons: flip / clear / reset / turn / load. */
+.ghost {
+  background: #3a3a3a;
+  border-color: #555;
+  color: var(--fg);
+}
+
+.fen-input { width: min(60vw, 280px); }
+
+/* Piece palette. The container carries .cg-wrap so the cburnett images (scoped
+   to .cg-wrap piece.color.role) apply to the swatches; these rules override the
+   absolute board-piece positioning with an inline, tappable chip layout. They
+   sit after the vendored base.css, so equal-specificity overrides win. */
+.palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  align-items: center;
+  max-width: min(92vw, 70vh);
+  margin: 0 auto 10px;
+}
+.palette piece {
+  position: static;
+  display: inline-block;
+  width: 34px;
+  height: 34px;
+  pointer-events: auto;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 2px solid transparent;
+}
+.palette piece.selected,
+.palette .eraser.selected {
+  border-color: var(--accent);
+  background-color: rgba(108, 158, 99, 0.25);
+}
+.palette .eraser {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+  background: #3a3a3a;
+  border: 2px solid #555;
+  color: var(--fg);
+}
+
 /* --- dynamic board geometry --------------------------------------------- */
 
 /* chessgroundx positions pieces from the board's dimensions already, but the

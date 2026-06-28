@@ -31,10 +31,17 @@
   </script>
   <script src="coi-serviceworker.min.js"></script>
 
+  <!--
+    Cache-busting: GitHub Pages serves assets with a 10-minute cache, so after a
+    deploy a browser can run a stale app module against a fresh index.html. The
+    ?v=N query on our own changed assets (app.css, main.js, and main.js's local
+    imports) forces a refetch. Bump N whenever those app files change. Vendor
+    files and pieces.css are left unversioned — they rarely change and are large.
+  -->
   <link rel="stylesheet" href="vendor/chessgroundx/assets/chessground.base.css" />
   <link rel="stylesheet" href="vendor/chessgroundx/assets/chessground.brown.css" />
   <link rel="stylesheet" href="css/pieces.css" />
-  <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/app.css?v=2" />
 </head>
 <body>
   <main>
@@ -113,6 +120,6 @@
     </p>
   </main>
 
-  <script type="module" src="src/main.js"></script>
+  <script type="module" src="src/main.js?v=2"></script>
 </body>
 </html>

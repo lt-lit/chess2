@@ -1,18 +1,32 @@
-# Chess Roguelike — Phase 0 spike
+# Chess Roguelike — Fairy-Stockfish playground
 
-A playable game of **standard chess vs. full-strength Fairy-Stockfish**, running
-entirely client-side, served from GitHub Pages, tap-to-move on mobile. This is
-the make-or-break technical spike from the [design brief](./chess-roguelike-prototype-brief.md):
-it exists to prove the engine loads and returns strong moves at acceptable
-latency in a phone browser, single-threaded, on a static host.
+A client-side **playground for exploring Fairy-Stockfish's capabilities**,
+running entirely in the browser, served from GitHub Pages, tap-to-move on
+mobile. It grew out of the Phase 0 technical spike from the
+[design brief](./chess-roguelike-prototype-brief.md) — which proved the engine
+loads and returns strong moves at acceptable latency in a phone browser,
+single-threaded, on a static host — and now exposes a panel of knobs to
+experiment with what the engine can actually do.
 
 ## What it does
 
-- Standard 8×8 chess, you play **White** against the engine.
-- The opponent is **full-strength** Fairy-Stockfish (fixed depth, single-threaded
-  search for reproducibility — no strength capping).
-- Pick the engine search depth (8–16) to probe the mobile latency ceiling. Each
-  engine move reports its think-time in ms and a live depth/eval readout.
+An **experiment panel** drives the engine through its range:
+
+- **Variant** — standard chess plus everything that plays on an 8×8 board:
+  Chess960, Crazyhouse (with pockets + drops), King of the Hill, Three-check,
+  Atomic, Antichess, Horde, and Racing Kings.
+- **You play** — White or Black (the engine opens when you take Black).
+- **Strength** — full strength, capped `Skill Level`, or a target `UCI_Elo`, so
+  the opponent can be a beatable sparring partner instead of always full power.
+- **Think** — bound the search by depth, move-time, or node count.
+- **Lines** — show the top 1/3/5 candidate moves (`MultiPV`) with a live
+  per-line eval readout, always from your point of view.
+
+Promotions get a proper piece chooser (including under-promotion, and king
+promotion in Antichess). Each engine move still reports its think-time in ms.
+
+> Shogi, Xiangqi, and Capablanca are the next step — they each need a different
+> board geometry and piece set, so they're staged after this 8×8 family.
 
 ## Architecture (per the brief's prime directive)
 
@@ -29,8 +43,14 @@ position:
   bundler. (`src/main.js`)
 - **Pieces** — cburnett SVGs (GPL), inlined as data URIs in `css/pieces.css`,
   remapped to chessgroundx's `-piece` role classes.
+- **Variant registry** — `src/variants.js` is the single source of truth for
+  which variants the panel offers and the per-variant facts (engine name,
+  pockets, promotion roles) the rules/engine/UI each need.
 
 No build step. No backend. Everything is vendored and loaded directly.
+
+Append `?debug` to the URL to expose a small read-only `window.__pg` handle
+(live game + move entry points) for manual poking; it has no effect otherwise.
 
 ## SharedArrayBuffer / GitHub Pages
 
@@ -66,7 +86,10 @@ as-is. No further configuration needed.
 
 ## Status
 
-Validated in headless Chromium: engine loads in ~2s, returns strong legal moves
-at depth 12 in well under a second on desktop hardware. The open Phase 0 question
-— per-move latency on a real mid-range phone — is what to measure next on the
-deployed site.
+Validated in headless Chromium: engine loads in ~2s and returns strong legal
+moves in well under a second on desktop hardware. All nine 8×8 variants play
+end to end (engine replies, no console errors); crazyhouse pockets + drops,
+the promotion chooser (incl. under-promotion), strength capping, the search
+limits, and the MultiPV readout were each exercised through the UI. The open
+Phase 0 question — per-move latency on a real mid-range phone — is what to
+measure next on the deployed site.

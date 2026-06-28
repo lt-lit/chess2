@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <meta name="theme-color" content="#2b2b2b" />
   <link rel="icon" href="data:," />
-  <title>Chess Roguelike — Phase 0 Spike</title>
+  <title>Chess Roguelike — Fairy-Stockfish playground</title>
 
   <!--
     coi-serviceworker must load first. GitHub Pages can't send the COOP/COEP
@@ -38,26 +38,73 @@
 </head>
 <body>
   <main>
-    <h1>Chess Roguelike — Phase&nbsp;0</h1>
-    <p class="sub">Standard chess vs. full-strength Fairy-Stockfish. You are White.</p>
+    <h1>Fairy-Stockfish playground</h1>
+    <p class="sub">Pick a variant, dial the strength, and watch the engine think.</p>
 
-    <div id="board"></div>
+    <!-- The cg-wrap class on the column lets the cburnett piece images (scoped
+         to .cg-wrap in pieces.css) reach the pocket pieces, which live in these
+         host divs rather than inside the board element. -->
+    <div id="board-col" class="cg-wrap">
+      <div id="pocket-top"></div>
+      <div id="board"></div>
+      <div id="pocket-bottom"></div>
+    </div>
 
     <p id="status" class="status">Loading…</p>
-    <p id="info" class="info"></p>
+    <div id="lines" class="lines"></div>
 
     <div class="controls">
-      <label>Engine depth
-        <select id="depth">
-          <option value="8">8 (fast)</option>
-          <option value="10">10</option>
-          <option value="12" selected>12</option>
-          <option value="14">14</option>
-          <option value="16">16 (strong/slow)</option>
+      <label>Variant
+        <select id="variant"></select>
+      </label>
+      <label>You play
+        <select id="side">
+          <option value="white" selected>White</option>
+          <option value="black">Black</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="controls">
+      <label>Strength
+        <select id="strength">
+          <option value="full" selected>Full strength</option>
+          <option value="skill:0">Skill 0 (weakest)</option>
+          <option value="skill:3">Skill 3</option>
+          <option value="skill:6">Skill 6</option>
+          <option value="skill:10">Skill 10</option>
+          <option value="skill:15">Skill 15</option>
+          <option value="elo:800">~800 Elo</option>
+          <option value="elo:1200">~1200 Elo</option>
+          <option value="elo:1600">~1600 Elo</option>
+          <option value="elo:2000">~2000 Elo</option>
+          <option value="elo:2400">~2400 Elo</option>
+        </select>
+      </label>
+      <label>Think
+        <select id="limit">
+          <option value="depth:8">Depth 8 (fast)</option>
+          <option value="depth:10">Depth 10</option>
+          <option value="depth:12" selected>Depth 12</option>
+          <option value="depth:14">Depth 14</option>
+          <option value="depth:16">Depth 16 (slow)</option>
+          <option value="movetime:200">200 ms / move</option>
+          <option value="movetime:500">500 ms / move</option>
+          <option value="movetime:1000">1 s / move</option>
+          <option value="nodes:50000">50k nodes</option>
+        </select>
+      </label>
+      <label>Lines
+        <select id="multipv">
+          <option value="1" selected>1 (best only)</option>
+          <option value="3">Top 3</option>
+          <option value="5">Top 5</option>
         </select>
       </label>
       <button id="new-game">New game</button>
     </div>
+
+    <div id="promo" class="promo hidden"></div>
 
     <p class="credit">
       Engine: <a href="https://github.com/fairy-stockfish/fairy-stockfish.wasm">Fairy-Stockfish</a> ·

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#2b2b2b" />
+  <link rel="icon" href="data:," />
+  <title>Chess Roguelike — Phase 0 Spike</title>
+
+  <!--
+    coi-serviceworker must load first. GitHub Pages can't send the COOP/COEP
+    headers that SharedArrayBuffer (and thus the Fairy-Stockfish WASM) needs,
+    so this shim supplies them client-side. On first visit it auto-reloads the
+    page once while the service worker installs.
+
+    The shim file MUST live at the site root (next to index.html): a service
+    worker can only control pages at or below its own path, so a vendored copy
+    in a subdirectory would never control this page and would reload forever.
+  -->
+  <script>
+    // Safety net: if isolation is somehow never achieved, stop after a few
+    // reloads instead of looping. Reset the counter once isolated.
+    if (window.crossOriginIsolated) sessionStorage.removeItem('coiReloads');
+    window.coi = {
+      doReload() {
+        const n = +(sessionStorage.getItem('coiReloads') || 0);
+        if (n < 3) { sessionStorage.setItem('coiReloads', String(n + 1)); location.reload(); }
+        else { console.warn('coi-serviceworker: stopped reloading after 3 attempts without isolation'); }
+      },
+    };
+  </script>
+  <script src="coi-serviceworker.min.js"></script>
+
+  <link rel="stylesheet" href="vendor/chessgroundx/assets/chessground.base.css" />
+  <link rel="stylesheet" href="vendor/chessgroundx/assets/chessground.brown.css" />
+  <link rel="stylesheet" href="css/pieces.css" />
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+  <main>
+    <h1>Chess Roguelike — Phase&nbsp;0</h1>
+    <p class="sub">Standard chess vs. full-strength Fairy-Stockfish. You are White.</p>
+
+    <div id="board"></div>
+
+    <p id="status" class="status">Loading…</p>
+    <p id="info" class="info"></p>
+
+    <div class="controls">
+      <label>Engine depth
+        <select id="depth">
+          <option value="8">8 (fast)</option>
+          <option value="10">10</option>
+          <option value="12" selected>12</option>
+          <option value="14">14</option>
+          <option value="16">16 (strong/slow)</option>
+        </select>
+      </label>
+      <button id="new-game">New game</button>
+    </div>
+
+    <p class="credit">
+      Engine: <a href="https://github.com/fairy-stockfish/fairy-stockfish.wasm">Fairy-Stockfish</a> ·
+      Board: <a href="https://github.com/gbtami/chessgroundx">chessgroundx</a> ·
+      Pieces: cburnett (lichess, GPL)
+    </p>
+  </main>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

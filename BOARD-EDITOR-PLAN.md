@@ -227,14 +227,76 @@ Ordered by risk and dependency: prove the scary part first, then build outward.
 
 ### Session 2 — Board editor: geometry + free setup
 
-- Editor screen: **size picker** (1–12 × 1–10), free placement with the 6
-  standard pieces, palette / eraser / clear / flip / load-FEN, side-to-move +
-  castling rights + pockets.
-- **Live red/green validation** with mapped error messages.
-- **"Play this position"** handoff (compile → validate → Play mode).
-- Save / load / share a variant (URL hash and/or localStorage).
-- Delivers requirements **1 & 2** end-to-end, standard pieces only. No assets.
-- First genuinely satisfying milestone.
+Delivers requirements **1 & 2** end-to-end, standard pieces only, no assets.
+**Split into 2a / 2b / 2c** — risk-first: prove the spine on the simplest input,
+then layer the laborious-but-low-risk placement UI, then persistence. Each
+sub-session ends shippable.
+
+The weight of this session is not in any one bullet of the old list — it's in
+three things the list compressed: the **placement UI** (a lichess-style editor is
+real work), **full-FEN + castling assembly** (the sharp edge), and the **`.ini`
+emitter** (net-new — today the compiler only *forwards* a hand-written ini; the
+Mini 5×5 string in `variants.js` is typed by hand). 2a front-loads the latter two.
+
+**Shared groundwork (built in 2a, used by all three):**
+
+- **`src/editor.js`** — owns its *own* chessgroundx instance, configured
+  differently from play (`movable.free`, palette, no legal-move dests). The
+  Play/Editor mode switch already exists (`main.js`); this fills the stub view.
+- **The `.ini` emitter** — `buildIni(editorState)` in `variant-config.js`, the
+  heart of the session. Synthesizes ini text from structured editor state,
+  leaning on `[<name>:chess]` inheritance exactly like Mini 5×5:
+  `maxFile`/`maxRank`/`startFen` + the geometry-coupled overrides. **Rule:
+  whenever dims ≠ 8×8, override every geometry-coupled key** (`promotionRegion`,
+  `doubleStep`/`enPassantRegion`, castling rank) — inherited chess defaults
+  (e.g. `promotionRegion = *8`) silently produce invalid/unplayable configs
+  otherwise. This is the one slice of "Session 3 rules" Session 2 cannot defer.
+- **`fullFen()` helper** — chessgroundx `getFen()` returns only placement (+
+  pockets); this appends side-to-move / castling / en passant / move counters.
+- **Extend the `?debug` handle** with editor entry points (set size, place piece,
+  read state, validate) so the editor stays headless-verifiable — same Session-1
+  discipline. Bump the cache-bust to `?v=4`.
+
+**2a — Resize → play (requirement 1 end-to-end).**
+
+- Size picker (1–12 × 1–10), clamped to `SIZE_LIMITS`.
+- Auto-generate a sane standard back-rank FEN for the chosen size; preview board
+  (non-interactive for now).
+- `buildIni` + the geometry-coupled defaults above.
+- **Live red/green validation** wired to the existing `validate()` gate — mapped
+  `FEN_MESSAGES`, debounced, ffish-only (engine load deferred to the handoff).
+- **"Play this position"** — compile → validate → engine load → switch to Play
+  mode (reuses `startNewGame`'s tail).
+- *Ship:* resize the board and actually play it.
+
+**2b — Free placement (requirement 2).**
+
+- Palette of the 6 standard pieces + eraser; click/drag to place, clear, flip,
+  load-FEN (paste a position), side-to-move toggle.
+- Live validation now runs per-edit on the assembled full FEN.
+- **Castling — the known sharp edge.** Conservative Session-2 rule: offer
+  castling only on 8-wide boards with king+rook on standard files, emit `KQkq`;
+  everything else `castling = false`. Full custom-file castling
+  (`castlingKingFile`, X-FEN) is deferred to Session 3 — a deliberate limitation.
+- *Ship:* full standard-piece position editor.
+
+**2c — Persistence + share.**
+
+- Serialize **compact editor state** (dims + FEN + flags) — *not* the raw
+  `.ini` — to the **URL hash**, with **localStorage** as a named library on top.
+  Load-from-hash on boot.
+- *Ship:* shareable, saveable variants.
+
+**Decisions locked for Session 2:**
+
+- **Share format:** editor-state-in-hash + localStorage library. Encoding the
+  derived `.ini` would balloon once Session 3 modifiers land — serialize the
+  source of truth, not the artifact. (Resolves open-question #3.)
+- **Castling scope:** conservative (8-wide standard only); full custom-file
+  castling rides with the Session-3 rules work.
+- **Pocket editing deferred** to Session 3 — pockets only matter once
+  `pieceDrops` exists, so hand-editing UI now would be premature. (Moved out of
+  this session's scope.)
 
 ### Session 3 — Modifiers / rules (likely split 3a + 3b)
 
@@ -266,8 +328,10 @@ Ordered by risk and dependency: prove the scary part first, then build outward.
 - **Fairy timing:** keep the Betza designer in Session 4, or pull a
   letter-glyph-fallback version into Session 3 and backfill art in Session 4?
 - **Asset source & licensing** for the fairy set (decide before Session 4).
-- **Share format:** full variant (`.ini` + FEN) serialized to URL hash vs. short
-  code vs. localStorage library — decide in Session 2.
+- ~~**Share format:** full variant (`.ini` + FEN) serialized to URL hash vs. short
+  code vs. localStorage library — decide in Session 2.~~ — **resolved (Session 2):**
+  serialize *compact editor state* (dims + FEN + flags), not the derived `.ini`,
+  to the URL hash; localStorage as a named library on top.
 - ~~**Engine `VariantPath` loading** is assumed-feasible but unproven in this
   repo~~ — **resolved in Session 1**: `sf.FS.writeFile('/variants.ini', …)` +
   `setoption VariantPath` works; the engine plays runtime-loaded custom variants.

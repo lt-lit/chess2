@@ -18,19 +18,26 @@
 import { Chessground } from '../vendor/chessgroundx/chessground.js';
 import {
   SIZE_LIMITS, compile, editorSpec, standardSetupFen, assembleFen,
-} from './variant-config.js?v=6';
-import { validate } from './rules.js?v=6';
-import { syncHash, shareUrl, listSaved, saveEntry, removeEntry, getEntry } from './share.js?v=6';
+} from './variant-config.js?v=7';
+import { validate, uciToKey } from './rules.js?v=7';
+import { syncHash, shareUrl, listSaved, saveEntry, removeEntry, getEntry } from './share.js?v=7';
+import { analyzeConnectivity } from './connectivity.js?v=7';
 
 const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
 const DEFAULTS = { width: 8, height: 8 };
 const PIECE_LETTERS = ['k', 'q', 'r', 'b', 'n', 'p'];
+
+// Walls are `*` in FEN; chessgroundx maps them to the `_-piece` role natively
+// (util.js roleOf/letterOf), so a wall on the board is just a piece with this
+// role — stamp it, drag it, getFen() round-trips it.
+const WALL = { role: '_-piece', color: 'black' };
 
 // Placement-only FENs (no side/castling fields), used to (re)seed the board.
 const placementFor = (w, h) => standardSetupFen(w, h).split(' ')[0];
 const emptyPlacement = (w, h) => Array.from({ length: h }, () => String(w)).join('/');
 
 function pieceFromChar(ch) {
+  if (ch === '*') return { ...WALL };
   return { role: ch.toLowerCase() + '-piece', color: ch === ch.toUpperCase() ? 'white' : 'black' };
 }
 
@@ -66,6 +73,7 @@ export function initEditor({ onPlay }) {
   const flipBtn = document.getElementById('ed-flip');
   const fenIn = document.getElementById('ed-fen');
   const fenBtn = document.getElementById('ed-fen-load');
+  const crumbleIn = document.getElementById('ed-crumble');
   const shareBtn = document.getElementById('ed-share');
   const nameIn = document.getElementById('ed-name');
   const saveBtn = document.getElementById('ed-save');
@@ -78,6 +86,7 @@ export function initEditor({ onPlay }) {
   let mounted = false;
   let dims = { ...DEFAULTS };
   let turn = 'w';
+  let crumble = false; // snailtrail rules (wallingRule = past) for playtests
   let brush = null; // null = move mode | {role,color} = stamp | 'erase'
   let brushEl = null;
   let painting = false;
@@ -114,17 +123,24 @@ export function initEditor({ onPlay }) {
   }
 
   function compiledFor(fen) {
-    return compile(editorSpec({ width: dims.width, height: dims.height, startFen: fen }));
+    return compile(editorSpec({ width: dims.width, height: dims.height, startFen: fen, crumble }));
   }
 
   function revalidate() {
     if (!cg) return null;
     const fen = fullFen();
     // Keep the URL in sync so a refresh (and "Copy link") preserves the position.
-    syncHash(fen);
+    syncHash(fen, crumble);
     lastCheck = validate(compiledFor(fen));
     if (lastCheck.ok) {
-      statusEl.textContent = `✓ Valid ${dims.width}×${dims.height} — ready to play.`;
+      // Soft warning, not a gate: a wall-sealed board is legal and playable,
+      // but if the armies can never reach each other nobody can ever win.
+      const conn = analyzeConnectivity(fen.split(' ')[0]);
+      const sealed = conn.armiesConnected === false;
+      lastCheck.connectivity = conn;
+      statusEl.textContent = sealed
+        ? `✓ Valid ${dims.width}×${dims.height} — but walls seal the armies apart.`
+        : `✓ Valid ${dims.width}×${dims.height} — ready to play.`;
       statusEl.className = 'status ok';
       playBtn.disabled = false;
     } else {
@@ -244,6 +260,14 @@ export function initEditor({ onPlay }) {
     };
     for (const l of PIECE_LETTERS) addPiece('white', l);
     for (const l of PIECE_LETTERS) addPiece('black', l);
+    // Wall brush: stamps `*` squares (removed board). One swatch — walls have
+    // no color; ffish reads them back regardless of which case writes them.
+    const wall = document.createElement('piece');
+    wall.className = `${WALL.color} ${WALL.role}`;
+    wall.title = 'Wall';
+    wall.addEventListener('mousedown', (e) => e.preventDefault());
+    wall.addEventListener('click', () => selectBrush(wall, { ...WALL }));
+    paletteEl.appendChild(wall);
     const er = document.createElement('button');
     er.className = 'eraser';
     er.title = 'Eraser';
@@ -261,6 +285,14 @@ export function initEditor({ onPlay }) {
     turn = t === 'b' ? 'b' : 'w';
     updateTurnLabel();
     revalidate();
+  }
+
+  // Crumble toggle: swaps the compiled variant (different name + ini), so the
+  // gate revalidates and the hash re-syncs. The position itself is untouched.
+  function setCrumble(v) {
+    crumble = !!v;
+    if (crumbleIn) crumbleIn.checked = crumble;
+    return revalidate();
   }
 
   function loadFen(raw) {
@@ -310,7 +342,7 @@ export function initEditor({ onPlay }) {
   }
 
   async function copyLink() {
-    const url = shareUrl(fullFen()); // current position (hash is already live)
+    const url = shareUrl(fullFen(), crumble); // current position (hash is already live)
     try {
       await navigator.clipboard.writeText(url);
       flashStatus('✓ Link copied to clipboard.', 'ok');
@@ -333,7 +365,7 @@ export function initEditor({ onPlay }) {
 
   function doSave(rawName) {
     const name = (rawName || '').trim() || `${dims.width}×${dims.height} position`;
-    const entry = saveEntry(name, fullFen());
+    const entry = saveEntry(name, fullFen(), crumble);
     if (!entry) {
       flashStatus('Could not save (storage unavailable).', 'bad');
       return null;
@@ -347,7 +379,10 @@ export function initEditor({ onPlay }) {
 
   function loadSaved(id) {
     const entry = getEntry(id);
-    if (entry) loadFen(entry.fen);
+    if (entry) {
+      setCrumble(entry.crumble);
+      loadFen(entry.fen);
+    }
     return entry;
   }
 
@@ -363,6 +398,7 @@ export function initEditor({ onPlay }) {
   filesIn.addEventListener('change', applySize);
   ranksIn.addEventListener('change', applySize);
   turnBtn.addEventListener('click', () => setTurn(turn === 'w' ? 'b' : 'w'));
+  if (crumbleIn) crumbleIn.addEventListener('change', () => setCrumble(crumbleIn.checked));
   clearBtn.addEventListener('click', () => mount(emptyPlacement(dims.width, dims.height)));
   resetBtn.addEventListener('click', () => mount(placementFor(dims.width, dims.height)));
   flipBtn.addEventListener('click', () => cg && cg.toggleOrientation());
@@ -395,26 +431,28 @@ export function initEditor({ onPlay }) {
       applySize();
       return lastCheck;
     },
+    // Keys accepted in either notation: chessgroundx ('a:') or UCI ('a10').
     place(key, ch) {
-      cg.setPieces(new Map([[key, { ...pieceFromChar(ch), promoted: false }]]));
+      cg.setPieces(new Map([[uciToKey(key), { ...pieceFromChar(ch), promoted: false }]]));
       return revalidate();
     },
     erase(key) {
-      cg.setPieces(new Map([[key, undefined]]));
+      cg.setPieces(new Map([[uciToKey(key), undefined]]));
       return revalidate();
     },
     clear() { mount(emptyPlacement(dims.width, dims.height)); return lastCheck; },
     reset() { mount(placementFor(dims.width, dims.height)); return lastCheck; },
     setTurn,
+    setCrumble,
     loadFen,
-    link() { return shareUrl(fullFen()); },
+    link() { return shareUrl(fullFen(), crumble); },
     save(name) { return doSave(name); },
     listSaved,
     loadSaved,
     deleteSaved,
     getState() {
       return {
-        width: dims.width, height: dims.height, turn,
+        width: dims.width, height: dims.height, turn, crumble,
         placement: cg ? cg.getFen() : null,
         fen: cg ? fullFen() : null,
         check: lastCheck,

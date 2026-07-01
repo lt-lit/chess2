@@ -3,12 +3,12 @@
 // opponent is the FSF WASM engine. Everything variant-specific is described in
 // src/variants.js so this file stays mostly variant-agnostic.
 import { Chessground } from '../vendor/chessgroundx/chessground.js';
-import { initRules, Game, validate } from './rules.js?v=6';
-import { initEngine, configure, newGame, getBestMove } from './engine.js?v=6';
-import { VARIANTS, getVariant, pocketRoles } from './variants.js?v=6';
-import { compile } from './variant-config.js?v=6';
-import { initEditor } from './editor.js?v=6';
-import { readHash } from './share.js?v=6';
+import { initRules, Game, validate } from './rules.js?v=7';
+import { initEngine, configure, newGame, getBestMove } from './engine.js?v=7';
+import { VARIANTS, getVariant, pocketRoles } from './variants.js?v=7';
+import { compile } from './variant-config.js?v=7';
+import { initEditor } from './editor.js?v=7';
+import { readHash } from './share.js?v=7';
 
 const boardEl = document.getElementById('board');
 const pocketTopEl = document.getElementById('pocket-top');
@@ -153,7 +153,7 @@ async function engineTurn() {
   const elapsed = Math.round(performance.now() - t0);
 
   game.applyUci(uci);
-  lastMove = [uci.slice(0, 2), uci.slice(2, 4)];
+  lastMove = game.endsOf(uci); // handles wall suffixes + 3-char squares (a10)
   thinking = false;
   render();
 
@@ -356,11 +356,14 @@ async function main() {
   modeEditorBtn.addEventListener('click', () => setMode('editor'));
   await startNewGame();
 
-  // A shared link (…#fen=…) opens straight into the editor with that position.
+  // A shared link (…#fen=…[&cr=1]) opens straight into the editor with that
+  // position. Set crumble before the FEN so the mount validates (and re-syncs
+  // the hash) under the shared rules.
   const shared = readHash();
   if (shared) {
     setMode('editor');
-    editor.loadFen(shared);
+    editor.setCrumble(shared.crumble);
+    editor.loadFen(shared.fen);
   }
 }
 

@@ -49,13 +49,19 @@ export const FEN_MESSAGES = {
 // 2a; the free-placement editor (2b) reuses the same emitter, swapping the
 // auto-generated FEN for one read off the board.
 
-// A unique FSF/ffish variant name per board geometry. Encoding the size means
-// different sizes register as different variants (no override ambiguity), while
-// re-emitting the same size is a harmless no-op re-registration.
-// NOTE: once rules become user-editable (Session 3) this must also encode the
-// rule set (e.g. a hash) so two different rulesets at one size don't collide.
-export function editorVariantName(width, height) {
-  return `editor${width}x${height}`;
+// A unique FSF/ffish variant name per board geometry + rule set. Encoding the
+// size (and the crumble flag — the one optional rule so far) means different
+// configs register as different variants (no override ambiguity), while
+// re-emitting the same config is a harmless no-op re-registration.
+// NOTE: as more rules become user-editable this must keep encoding them (e.g.
+// a hash) so two different rulesets at one size don't collide.
+//
+// Static walls (`*` squares in the FEN) are NOT a rule: FSF accepts wall
+// squares in any position FEN with no config keys at all (verified — they
+// block sliders and validate fine), so a walled board shares its unwalled
+// geometry's variant.
+export function editorVariantName(width, height, { crumble = false } = {}) {
+  return `editor${width}x${height}${crumble ? 'cr' : ''}`;
 }
 
 // A sane standard-style back rank for a board `w` files wide: rooks in the
@@ -128,8 +134,8 @@ export function standardSetupFen(w, h) {
 // loadVariantConfig de-dupe instead of re-registering the variant on each edit.
 // The actual position is always passed explicitly to ffish.Board / validateFen
 // (via compiled.startFen), so this default is never the position that's played.
-export function buildIni({ width, height }) {
-  const name = editorVariantName(width, height);
+export function buildIni({ width, height, crumble = false }) {
+  const name = editorVariantName(width, height, { crumble });
   const lines = [
     `[${name}:chess]`,
     `maxFile = ${width}`,
@@ -154,25 +160,37 @@ export function buildIni({ width, height }) {
   // then only the true 8×8 board keeps chess castling; the start FEN carries no
   // castling rights regardless, so no position can actually castle yet.
   if (width !== 8 || height !== 8) lines.push(`castling = false`);
+  if (crumble) {
+    // Crumble (GAME-LOOP-PLAN.md): every move leaves a permanent wall on its
+    // origin square (snailtrail), and a player with no legal moves loses —
+    // games self-terminate decisively, usually by mobility exhaustion.
+    // Walling changes the UCI move format to "<move>,<wall suffix>"; the
+    // rules layer (rules.js) is comma-aware.
+    lines.push(`wallingRule = past`);
+    lines.push(`stalemateValue = loss`);
+  }
   return lines.join('\n');
 }
 
 // Wrap editor state into a *spec* the existing compile() understands, so the
 // editor rides the same pipeline as the static registry. `state` is
-// { width, height, startFen? } — startFen defaults to the standard setup.
-export function editorSpec({ width, height, startFen }) {
+// { width, height, startFen?, crumble? } — startFen defaults to the standard
+// setup; crumble adds the snailtrail rules (see buildIni).
+export function editorSpec({ width, height, startFen, crumble = false }) {
   const fen = startFen || standardSetupFen(width, height);
   return {
     kind: 'custom',
     key: 'editor',
-    label: `Custom ${width}×${height}`,
-    name: editorVariantName(width, height),
+    label: `Custom ${width}×${height}${crumble ? ' crumble' : ''}`,
+    name: editorVariantName(width, height, { crumble }),
     dimensions: { width, height },
     startFen: fen,
-    ini: buildIni({ width, height }),
+    ini: buildIni({ width, height, crumble }),
     pocket: false,
     promo: ['q', 'r', 'b', 'n'],
-    blurb: `Custom ${width}×${height} board.`,
+    blurb: crumble
+      ? `Custom ${width}×${height} board — crumble: every move walls its origin square; no moves = you lose.`
+      : `Custom ${width}×${height} board.`,
   };
 }
 

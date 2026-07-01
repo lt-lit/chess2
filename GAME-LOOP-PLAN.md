@@ -139,12 +139,12 @@ you cannot play 200 games against each one:
 
 Mechanics and honesty notes:
 
-- **Where it runs:** `tools/`, never shipped. Preferred host: Node driving the
-  *same vendored WASM builds* (ffish.js is Node-compatible; stockfish.wasm
-  under Node is a Session H verification item). Fallback: Playwright + headless
-  Chromium driving the app's own modules through the `?debug` handles — the
-  repo's established verification habit. Graduate to a native FSF binary only
-  if throughput demands it.
+- **Where it runs:** `tools/`, never shipped. Host: Node driving the *same
+  vendored WASM builds* — **verified working during Session W** (both WASMs
+  run under plain Node: pass `wasmBinary` explicitly; the engine's pthreads
+  ride worker_threads). Fallback if ever needed: Playwright + headless
+  Chromium through the `?debug` handles — the repo's established verification
+  habit. Graduate to a native FSF binary only if throughput demands it.
 - **Throughput ballpark:** a capped-vs-full game on a small board is seconds;
   hundreds of games is a lunch-break sweep, parallelizable across workers.
 - **Scoring:** player must win. Draws, stalemate-losses, and mobility
@@ -179,16 +179,21 @@ leaves a permanent wall on the square the piece departed from. Two uses:
 
 Implementation notes:
 
-- With `past`, wall placement is **implicit in the move** — UCI move strings
-  are unchanged (unlike duck/arrow variants which carry a wall destination), so
-  input UI needs nothing new. Walls only need *rendering*.
+- With `past` the wall square is *determined* by the move (always its origin),
+  but the UCI string still carries it explicitly as a suffix — `d1c1,c1d1`,
+  promotions `a4a5q,a5a4` — a Session-W finding that corrected this doc. The
+  rules layer parses and supplies the suffix, so the input UI still needs
+  nothing new; walls only need *rendering*.
 - Mid-game variant swap is a new capability for the play path — today a game is
   one compiled variant fixed at `startGame()`. It's the same
   compile → validate → load pipeline, invoked mid-game (Session R).
 - The trigger (fixed move number vs "no capture/progress in N moves") is an
   open design question; start with a fixed, telegraphed move number.
-- `wallingRegion` × `past` interaction (could restrict which squares crumble)
-  is a Session W spike question.
+- ~~`wallingRegion` × `past` interaction (could restrict which squares crumble)
+  is a Session W spike question.~~ — **answered (Session W): a dead end.** The
+  region restricts which moves are *legal* (a move's origin must be wallable),
+  so a partial region silently forbids moves rather than softening decay.
+  Not used.
 
 ## Player side
 
@@ -238,7 +243,45 @@ plumbing that already works:
 Ordered risk-first: the two spikes gate everything; the rest is known work.
 **Each session ends with the app still fully working and shippable.**
 
-### Session W — Walls (de-risking spike)
+### Session W — Walls (de-risking spike) ✅ done
+
+> **Status: complete.** Every engine unknown resolved — all in the app's favor
+> — and verified end-to-end in headless Chromium (20 checks, `?v=7`):
+>
+> - **Static `*` walls need no config keys at all.** Wall squares in any
+>   position FEN validate, load, and play in both engines under a plain editor
+>   variant — no `wallingRule`/`wallingRegion` required. Walls are occupancy:
+>   they block sliders, round-trip through `Board.fen()`/`getFen()`, and work
+>   across the whole envelope including 12×10.
+> - **`wallingRule = past` (crumble) works natively in both engines**, with
+>   one surprise: the UCI move format gains a wall suffix (`d1c1,c1d1`;
+>   promotions `a4a5q,a5a4`). The rules layer is now comma-aware and pushes
+>   the full string; the engine returns the same format and it applies clean.
+> - **`wallingRegion` × `past` is a dead end** — the region restricts which
+>   moves are legal rather than where walls form (see the crumble section).
+> - **`stalemateValue = loss` behaves**: stalemate = attacker wins, and
+>   crumble games terminate decisively by mobility exhaustion (verified 1-0 /
+>   0-1 results, never a draw). One caveat for the generators: FSF's
+>   insufficient-material adjudication still applies — a bare-kings crumble
+>   position is an instant draw, so boards must carry mating material.
+> - **Rendering was free**: chessgroundx natively maps `*` ↔ the `_-piece`
+>   role (util.js `roleOf`/`letterOf`), so walls render and round-trip with
+>   only CSS slab art added.
+> - **Pre-existing bug found & fixed while proving 12×10**: ffish/UCI spell
+>   rank 10 as `a10`, chessgroundx keys as `a:` — the two notations had never
+>   been translated, so 10-rank boards were gate-valid but never actually
+>   playable to rank 10 (and `slice()`-based move parsing broke on 3-char
+>   squares). `Game`'s API now speaks chessgroundx keys and translates to UCI
+>   internally; parsing is regex-based (`parseUci`).
+> - **Session H bonus**: both vendored WASM builds run under plain Node (pass
+>   `wasmBinary`; the engine's pthreads ride worker_threads) — the calibration
+>   harness needs no browser.
+>
+> Shipped: wall brush + Crumble toggle in the editor (share hash `&cr=1` and
+> the library carry the flag), wall rendering everywhere, `src/connectivity.js`
+> (flood-fill armies-connected check, surfaced as a soft "walls seal the
+> armies apart" warning), and the editor→play handoff compiling crumble
+> configs through the existing gate.
 
 The one genuine engine unknown left. Gates the whole non-rectangular premise.
 

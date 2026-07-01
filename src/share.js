@@ -1,10 +1,12 @@
-// Persistence + sharing for the board editor (Session 2c).
+// Persistence + sharing for the board editor (Session 2c; crumble flag added
+// in the game-loop plan's Session W).
 //
-// The shareable unit is just the position's full FEN: it already encodes the
-// board size (files per rank × rank count), the side to move, and — since the
-// editor re-derives castling from piece placement — everything needed to
-// reconstruct the editor state. So a share link is `…#fen=<encoded FEN>`, and a
-// saved library entry is `{ id, name, fen }`. No `.ini`, no bespoke format.
+// The shareable unit is the position's full FEN — it already encodes the board
+// size (files per rank × rank count), the side to move, and (since the editor
+// re-derives castling from placement) everything positional — plus the one
+// editor rule toggle, crumble. So a share link is `…#fen=<encoded FEN>` with
+// `&cr=1` appended when crumble is on, and a saved library entry is
+// `{ id, name, fen, crumble? }`. No `.ini`, no bespoke format.
 //
 // Two surfaces:
 //   - URL hash: copy/restore the current position via the address bar.
@@ -13,24 +15,30 @@
 // iframe) degrades to "sharing off" rather than throwing.
 
 const HASH_PREFIX = 'fen=';
+const CRUMBLE_FLAG = 'cr=1';
 const LIB_KEY = 'pg.editor.library';
 
 // --- URL hash ------------------------------------------------------------
 
-export function hashFor(fen) {
-  return '#' + HASH_PREFIX + encodeURIComponent(fen);
+export function hashFor(fen, crumble = false) {
+  return '#' + HASH_PREFIX + encodeURIComponent(fen) + (crumble ? '&' + CRUMBLE_FLAG : '');
 }
 
-export function shareUrl(fen) {
-  return location.origin + location.pathname + hashFor(fen);
+export function shareUrl(fen, crumble = false) {
+  return location.origin + location.pathname + hashFor(fen, crumble);
 }
 
-// The FEN encoded in the current URL hash, or null if none/parse fails.
+// The { fen, crumble } encoded in the current URL hash, or null if none/parse
+// fails. Pre-crumble links (bare #fen=…) read as crumble: false.
 export function readHash() {
   const h = location.hash.replace(/^#/, '');
   if (!h.startsWith(HASH_PREFIX)) return null;
+  const parts = h.split('&');
   try {
-    return decodeURIComponent(h.slice(HASH_PREFIX.length));
+    return {
+      fen: decodeURIComponent(parts[0].slice(HASH_PREFIX.length)),
+      crumble: parts.includes(CRUMBLE_FLAG),
+    };
   } catch {
     return null;
   }
@@ -38,9 +46,9 @@ export function readHash() {
 
 // Reflect a position into the address bar without growing history, so a refresh
 // (or copy-link) preserves it. No-op if history isn't writable.
-export function syncHash(fen) {
+export function syncHash(fen, crumble = false) {
   try {
-    history.replaceState(null, '', hashFor(fen));
+    history.replaceState(null, '', hashFor(fen, crumble));
   } catch {
     /* sharing-by-URL unavailable; ignore */
   }
@@ -76,11 +84,12 @@ export function getEntry(id) {
 }
 
 // Save a position under a name. Returns the new entry (with a fresh id), or null
-// if storage is unavailable.
-export function saveEntry(name, fen) {
+// if storage is unavailable. Entries saved before the crumble flag existed have
+// no `crumble` key and read back as falsy.
+export function saveEntry(name, fen, crumble = false) {
   const list = readLib();
   const id = list.reduce((m, e) => Math.max(m, e.id || 0), 0) + 1;
-  const entry = { id, name, fen };
+  const entry = { id, name, fen, crumble };
   list.push(entry);
   return writeLib(list) ? entry : null;
 }

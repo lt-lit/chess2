@@ -3,7 +3,7 @@
 // board UI only renders; every move is validated here, and the engine is only
 // ever handed FENs that originate from this module.
 import ffishModule from '../vendor/ffish/ffish.js';
-import { FEN_MESSAGES } from './variant-config.js?v=6';
+import { FEN_MESSAGES } from './variant-config.js?v=7';
 
 let ffish = null;
 
@@ -58,6 +58,40 @@ export function validate(compiled) {
   return { ok: code === 1, code, message: FEN_MESSAGES[code] || `Invalid (code ${code}).`, fen };
 }
 
+// --- UCI move parsing ------------------------------------------------------
+//
+// Two wrinkles beyond "e2e4":
+//   - Walling variants (wallingRule, e.g. the editor's crumble mode) suffix
+//     moves with a comma + wall placement: "d1c1,c1d1", "a4a5q,a5a4". The part
+//     before the comma is the ordinary move; push() needs the full string.
+//   - Boards with 10 ranks have three-character squares ("a10"), so fixed
+//     slice(0,2)/slice(2,4) parsing is wrong on the 12×10 envelope.
+// parseUci handles both; drops ("P@e4") don't match and are handled by their
+// own paths (walling and drops are mutually exclusive in FSF anyway).
+
+const baseOf = (uci) => {
+  const i = uci.indexOf(',');
+  return i === -1 ? uci : uci.slice(0, i);
+};
+
+// "10" must be tried before single digits so "a1a10" parses as a1→a10.
+const MOVE_RE = /^([a-l](?:10|[1-9]))([a-l](?:10|[1-9]))([a-z]*)$/;
+
+// → { from, to, promo } for a board move (ignoring any wall suffix), or null
+// for drops / anything else.
+export function parseUci(uci) {
+  const m = MOVE_RE.exec(baseOf(uci));
+  return m ? { from: m[1], to: m[2], promo: m[3] } : null;
+}
+
+// Square-name translation. ffish/UCI spell rank 10 out ("a10"); chessgroundx
+// keys use one character per rank, ':' for 10 ("a:"). The Game API below
+// accepts and returns CHESSGROUNDX KEYS — its callers are all board-UI-facing
+// — and speaks UCI only to ffish. Both helpers pass through squares already in
+// their target notation, so mixed input is safe.
+export const uciToKey = (sq) => (sq.endsWith('10') ? sq[0] + ':' : sq);
+export const keyToUci = (key) => (key[1] === ':' ? key[0] + '10' : key);
+
 export class Game {
   // `compiled` is a compiled variant from src/variant-config.js.
   constructor(compiled) {
@@ -103,8 +137,9 @@ export class Game {
   dests() {
     const m = new Map();
     for (const mv of this.legalUci()) {
-      const from = mv.slice(0, 2);
-      const to = mv.slice(2, 4);
+      const p = parseUci(mv);
+      const from = p ? uciToKey(p.from) : mv.slice(0, 2); // drops: "P@" origin key
+      const to = uciToKey(p ? p.to : baseOf(mv).slice(2));
       if (!m.has(from)) m.set(from, []);
       const arr = m.get(from);
       if (!arr.includes(to)) arr.push(to);
@@ -116,34 +151,40 @@ export class Game {
   // 'n']), or [] if this move isn't a promotion. Lets the UI offer a chooser
   // instead of silently auto-queening.
   promotionsFor(orig, dest) {
-    const base = orig + dest;
-    return this.legalUci()
-      .filter((m) => m.length > 4 && m.slice(0, 4) === base)
-      .map((m) => m.slice(4));
+    const from = keyToUci(orig);
+    const to = keyToUci(dest);
+    const out = [];
+    for (const mv of this.legalUci()) {
+      const p = parseUci(mv);
+      if (p && p.promo && p.from === from && p.to === to) out.push(p.promo);
+    }
+    return out;
   }
 
   // Apply a board move. `promo` (a suffix like 'q') picks the promotion piece;
   // if omitted on a promotion move we fall back to queen. Returns the full UCI
-  // actually played, or null if illegal.
+  // actually played (including any wall suffix), or null if illegal.
   applyMove(orig, dest, promo) {
-    const base = orig + dest;
-    const legals = this.legalUci();
-    let uci;
-    if (promo) uci = legals.find((m) => m === base + promo);
-    if (!uci) uci = legals.find((m) => m === base);
-    if (!uci) {
-      const promos = legals.filter((m) => m.length > 4 && m.slice(0, 4) === base);
-      uci = promos.find((m) => m.endsWith('q')) || promos[0];
+    const from = keyToUci(orig);
+    const to = keyToUci(dest);
+    const candidates = [];
+    for (const mv of this.legalUci()) {
+      const p = parseUci(mv);
+      if (p && p.from === from && p.to === to) candidates.push({ mv, promo: p.promo });
     }
-    if (!uci) return null;
-    this.board.push(uci);
-    return uci;
+    let hit;
+    if (promo) hit = candidates.find((c) => c.promo === promo);
+    if (!hit) hit = candidates.find((c) => !c.promo);
+    if (!hit) hit = candidates.find((c) => c.promo === 'q') || candidates[0];
+    if (!hit) return null;
+    this.board.push(hit.mv);
+    return hit.mv;
   }
 
   // Apply a pocket drop (crazyhouse &c). `role` is a chessgroundx role id
   // ('p-piece'); ffish drop UCI uses the uppercase piece letter ("P@e4").
   applyDrop(role, dest) {
-    const uci = role[0].toUpperCase() + '@' + dest;
+    const uci = role[0].toUpperCase() + '@' + keyToUci(dest);
     if (!this.legalUci().includes(uci)) return null;
     this.board.push(uci);
     return uci;
@@ -151,6 +192,16 @@ export class Game {
 
   applyUci(uci) {
     return this.board.push(uci);
+  }
+
+  // [from, to] chessgroundx keys of a UCI move (for last-move highlighting),
+  // or [dest] for a drop. Wall suffixes and 3-char squares handled.
+  endsOf(uci) {
+    const p = parseUci(uci);
+    if (p) return [uciToKey(p.from), uciToKey(p.to)];
+    const base = baseOf(uci);
+    const at = base.indexOf('@');
+    return at >= 0 ? [uciToKey(base.slice(at + 1))] : undefined;
   }
 
   // Replace the current position from a FEN (same variant). Useful for setting

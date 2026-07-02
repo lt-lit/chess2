@@ -41,7 +41,7 @@
   <link rel="stylesheet" href="vendor/chessgroundx/assets/chessground.base.css" />
   <link rel="stylesheet" href="vendor/chessgroundx/assets/chessground.brown.css" />
   <link rel="stylesheet" href="css/pieces.css" />
-  <link rel="stylesheet" href="css/app.css?v=6" />
+  <link rel="stylesheet" href="css/app.css?v=7" />
 </head>
 <body>
   <main>
@@ -124,7 +124,7 @@
     </section>
 
     <section id="editor-view" class="hidden">
-      <p class="sub">Build a position — stamp pieces, drag to move, drag off to delete — then play it.</p>
+      <p class="sub">Build a position — stamp pieces (or walls), drag to move, drag off to delete — then play it.</p>
 
       <div class="controls">
         <label>Files
@@ -149,6 +149,9 @@
         <button id="ed-turn" class="ghost">White to move</button>
         <button id="ed-clear" class="ghost">Clear</button>
         <button id="ed-reset" class="ghost">Reset</button>
+        <label class="check" title="Snailtrail: every move leaves a permanent wall on its origin square, and a player with no legal moves loses.">
+          <input type="checkbox" id="ed-crumble" /> Crumble
+        </label>
       </div>
 
       <div class="controls">
@@ -183,6 +186,6 @@
     </p>
   </main>
 
-  <script type="module" src="src/main.js?v=6"></script>
+  <script type="module" src="src/main.js?v=7"></script>
 </body>
 </html>

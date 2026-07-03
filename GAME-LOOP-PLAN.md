@@ -139,8 +139,8 @@ it fought the checkmate-only goal*. Recorded so future sessions don't rebuild th
 ## Vision
 
 The playable run from the design brief, made concrete: the player takes an army
-through **13 must-win games** against full-strength Fairy-Stockfish, on boards
-that grow, twist, and crumble as the run goes on. Between games the player
+through **13 must-win games** against full-strength Fairy-Stockfish, on varied
+small boards (capped at 8×8 — Session H). Between games the player
 rearranges their pieces and picks upgrades. Difficulty comes entirely from how
 much asymmetric advantage the player holds — never from weakening the engine —
 and is **measured, not authored**: an offline FSF-vs-FSF harness plays every
@@ -205,21 +205,28 @@ difficulty budget concentrates in act 4 and the boss. Draw=loss raises the bar
 further — the player must *force a win* against an opponent that will happily
 bail into a repetition or 50-move draw when worse. Two consequences:
 
-- **`stalemateValue = loss`** (stalemated side loses) and the crumble mechanic
-  are conversion tools, not flavor — they exist so winnable positions convert
-  to wins inside the move budget. Under active crumble, repetition is literally
-  impossible (the position monotonically changes) and games self-terminate,
-  with **mobility exhaustion** becoming a common decisive ending.
-- Harness scoring is strict: **draws count as player losses.**
+- **`stalemateValue = loss`** stays at the engine level so the defender can't
+  bail into stalemate, but conversion now comes from **small boards +
+  stalemate-resistant matchups** (Session H) — and a board-level stalemate
+  scores as a *player loss* under checkmate-only scoring. *(The crumble half of
+  this bullet is superseded; crumble is shelved — see the mechanic graveyard.)*
+- Harness scoring is strict: **only a delivered checkmate counts as a player
+  win** — draws *and* board-level stalemate-wins score as losses (Session H).
 - Calibration happens **per act** (5 regimes: acts 1–4 + boss), not per round —
   13 per-round targets would explode the measurement matrix for no benefit.
   Within an act, difficulty climbs via the enemy-board band, not geometry.
 
-**Board-size gates (provisional, playtest to adjust):**
-act 1 ≈ 5×5–6×6 → act 2 ≈ 7×6–8×8 → act 3 ≈ 9×8–10×9 → act 4 ≈ 11×9–12×10 →
-boss: 12×10 (or a signature geometry).
+**Board-size gates — superseded (Session H): the envelope is capped at 8×8.**
+Bigger boards collapse the forced-checkmate rate, so geometry growth is no
+longer the act lever. Acts live in the 5×5–8×8 window (exact per-act sizes set
+by harness sweeps); difficulty climbs via the enemy band.
 
 ## Boards: archetypes, walls, variance
+
+> **Session H note:** wall-carved shapes are shelved for v1 (see the mechanic
+> graveyard) — v1 archetypes express their identity through army composition
+> and placement on plain boards ≤8×8. The generator/guardrail architecture
+> below stands; the wall-specific levers wait for post-v1.
 
 Fixed hand-authored FENs (the brief §5's original choice) cannot deliver
 "never the same board twice" — this plan supersedes that decision with
@@ -249,6 +256,10 @@ milliseconds, regenerate on failure):
    to reach each other. A sealed board is an unwinnable staring contest.
 3. A single fixed-depth eval with `UCI_ShowWDL` — reject instances that land
    wildly outside their target difficulty band.
+4. **Checkmate-convertibility screen (Session H)** — reject matchups that don't
+   convert to a *literal checkmate* reliably for the reference army (fast-play
+   or eval-based; this is the "referee" idea moved upstream to generation time,
+   where it's neutral).
 
 Difficulty is *not* modeled from material or wall counts — chokepoints favor
 knights, open lanes favor rooks, a walled-in king changes everything. No
@@ -295,6 +306,12 @@ Mechanics and honesty notes:
   later means widening the reference set (brief §6 anticipated exactly this).
 
 ## The crumble (anti-stall) mechanic
+
+> **Superseded (Session H): shelved for v1 — do not build.** Measured with real
+> engines: crumble *halves* the checkmate rate (47%→21% on 6×6) and ends games
+> by suffocation, and the live "referee" variant trades fast stalemates for
+> slow mates. Anti-stall is now the draw=loss rule stack. Section kept for the
+> engine findings and post-v1 reference.
 
 `wallingRule = past` — the snailtrail rule, native to both engines: every move
 leaves a permanent wall on the square the piece departed from. Two uses:
@@ -346,10 +363,11 @@ Implementation notes:
 
 Deliberately open design space, decided late when the harness can measure
 candidates. Directions to explore: a signature setpiece archetype with variance
-(memorability without repetition), crumble native from move 1, an
-extreme-geometry board (full 12×10), or a "everything you learned" composite.
-Constraint: same rules as everything else — measured difficulty, full-strength
-engine, expressible as `(config + FEN)`.
+(memorability without repetition) or an "everything you learned" composite.
+*(Session H: crumble-from-move-1 and the 12×10 extreme-geometry board are out —
+crumble is shelved and the envelope is capped at 8×8.)* Constraint: same rules
+as everything else — measured difficulty, full-strength engine, checkmate-only
+scoring, expressible as `(config + FEN)`.
 
 ## Relationship to existing code and docs
 
@@ -366,11 +384,13 @@ plumbing that already works:
   authoring); it gains a wall brush in Session W. Editor-plan sessions 3–5 stay
   shelved.
 - **`share.js`** patterns seed run persistence.
-- **The brief** remains the north star, with two recorded deviations: enemy
+- **The brief** remains the north star, with three recorded deviations: enemy
   boards are archetype-generated rather than hand-authored FENs (supersedes
-  brief §5's choice — generators preserve the memorability rationale), and
-  stalemate/draw handling is resolved as draw=loss + `stalemateValue = loss` +
-  crumble (brief §7's open question).
+  brief §5's choice — generators preserve the memorability rationale);
+  stalemate/draw handling is resolved as **checkmate-only scoring** on top of
+  the engine-level draw=loss stack (brief §7's open question — crumble is no
+  longer part of the answer); and the board envelope is capped at 8×8
+  (Session H).
 
 ## Session breakdown
 
@@ -442,6 +462,16 @@ The one genuine engine unknown left. Gates the whole non-rectangular premise.
 
 ### Session H — Calibration harness (de-risking spike)
 
+> **Status: spike complete (2026-07-03), hardening remains.** The de-risking
+> questions are answered, all in the app's favor: both WASMs drive under plain
+> Node, the capped-vs-full match loop works with ffish adjudication, and
+> `UCI_LimitStrength` demonstrably engages on custom small-board variants (the
+> capped stand-in plays weak — it stalemates, and occasionally loses). A v0
+> runner is committed at `tools/match-runner.cjs` (see `tools/README.md`).
+> Remaining for the full session: per-side engine instances, parallel workers,
+> real-movetime (1s) runs at honest N, `UCI_ShowWDL` plumbing, sweep outputs as
+> repo JSON, and the army sweeps from the findings block.
+
 Gates the no-manual-tuning premise. Independent of W (can develop on plain
 rectangles); build early per brief §6.
 
@@ -457,7 +487,8 @@ rectangles); build early per brief §6.
 
 ### Session G — Board generators
 
-Needs W (walls) + H (measurement).
+Needs H (measurement). *(The W walls dependency is dropped for v1 — wall
+geometry is shelved; Session H.)*
 
 - Archetype interface: `generate(params, rng) → { spec fragment, meta }`,
   difficulty levers declared per archetype; seeded RNG so the harness can
@@ -469,14 +500,18 @@ Needs W (walls) + H (measurement).
 
 ### Session R — Run loop
 
-Needs W for wall rendering + the mid-game swap; parallelizable with G.
+Parallelizable with G. *(Session H: the W dependencies — run-time wall
+rendering, the mid-game swap — dropped with crumble; the loop is simpler than
+first planned.)*
 
 - Run state machine (4 acts × 3 + boss slot, permadeath, localStorage).
 - Setup screen: constrained placement on the editor's internals.
 - Pick-1-of-3 upgrade step between games.
 - Round flow: guardrails → play (full strength pinned) → result → advance or
-  run-over. Draw = loss.
-- **Mid-game variant swap** for the crumble phase shift + countdown UI.
+  run-over. **Checkmate-only** (Session H): only a delivered mate advances;
+  stalemate or any draw ends the run.
+- ~~**Mid-game variant swap** for the crumble phase shift + countdown UI.~~
+  *(Dropped for v1 — crumble shelved, Session H.)*
 - Harden the engine turn against restarts (generation counter so a stale
   `bestmove` can't land on a new game — rounds restart constantly).
 - *Ship:* a full 13-game run playable end to end with placeholder tuning.
@@ -496,7 +531,7 @@ Needs everything above.
 
 - **Boss design** (game 13) — decided in Session T when candidates can be
   measured.
-- **Crumble trigger** — fixed move number vs no-progress-in-N; start fixed.
+- ~~**Crumble trigger**~~ — moot; crumble shelved for v1 (Session H).
 - **Upgrade pool contents** — and whether offers should counter the drawn
   board or stay board-blind (board-blind is simpler and forces adaptation).
 - **Setup freedom** — own half vs own ranks vs anywhere-behind-a-line; affects

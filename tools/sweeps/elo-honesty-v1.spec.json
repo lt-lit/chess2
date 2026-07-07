@@ -1,0 +1,18 @@
+{
+  "name": "elo-honesty-v1",
+  "note": "Does UCI_LimitStrength stay honest at the run's real pace (movetime 1000)? Control matchup: 5x5 K+Q+R vs K+R — the stalemate-prone point from the Session H findings (53% mate / 37% stalemate at Elo 1200, 100ms). Honest capping means the checkmate-only winrate is monotone in the cap (500 < 1000 < 1200 << full) and the capped side keeps its imperfections (stalemates/losses) at 1s. If capped ~= full here, the cap is not engaging and every calibration number is suspect.",
+  "defaults": {
+    "games": 40,
+    "movetime": 1000,
+    "cap": 140,
+    "earlyStopBelow": 0,
+    "fen": "3rk/5/5/5/RQ2K w - - 0 1",
+    "size": "5x5"
+  },
+  "points": [
+    { "id": "qr-vs-r-elo500",  "player": "K+Q+R", "enemy": "K+R", "elo": 500 },
+    { "id": "qr-vs-r-elo1000", "player": "K+Q+R", "enemy": "K+R", "elo": 1000 },
+    { "id": "qr-vs-r-elo1200", "player": "K+Q+R", "enemy": "K+R", "elo": 1200 },
+    { "id": "qr-vs-r-full",    "player": "K+Q+R", "enemy": "K+R", "elo": "full" }
+  ]
+}

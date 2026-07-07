@@ -1,0 +1,34 @@
+{
+  "name": "army-sweep-v1",
+  "note": "PRELIMINARY (medium fidelity): movetime 250ms, N=100/point, nominal Elo 1000 stand-in (locked decision #4; the Session H spike tables used 1200 — see the *-1200 continuity point). Directional — final candidate numbers need movetime 1000 and larger N. Player = White, bottom rank; defender = Black, full strength, top ranks, keeps a pawn where the matchup says so (stalemate resistance). a5-2r-vs-r keeps the spike's exact reference FEN, including its known first-move Rxa5 hang, for continuity with GAME-LOOP-PLAN's findings table; all new points were screened for first-move hangs of undefended pieces.",
+  "defaults": {
+    "games": 100,
+    "movetime": 250,
+    "elo": 1000,
+    "cap": 140,
+    "earlyStopBelow": 0.55,
+    "minGames": 24
+  },
+  "points": [
+    { "id": "a5-2r-vs-r",      "size": "5x5", "player": "K+2R",    "enemy": "K+R",     "fen": "r3k/5/5/5/RR2K w - - 0 1" },
+    { "id": "a5-2r-vs-r-1200", "size": "5x5", "player": "K+2R",    "enemy": "K+R",     "fen": "r3k/5/5/5/RR2K w - - 0 1", "elo": 1200 },
+    { "id": "b5-2r-vs-rp",     "size": "5x5", "player": "K+2R",    "enemy": "K+R+P",   "fen": "3rk/3p1/5/5/RR2K w - - 0 1" },
+    { "id": "c5-qr-vs-r",      "size": "5x5", "player": "K+Q+R",   "enemy": "K+R",     "fen": "3rk/5/5/5/RQ2K w - - 0 1" },
+    { "id": "d5-qn-vs-rp",     "size": "5x5", "player": "K+Q+N",   "enemy": "K+R+P",   "fen": "3rk/3p1/5/5/1QN1K w - - 0 1" },
+    { "id": "e5-2r-vs-np",     "size": "5x5", "player": "K+2R",    "enemy": "K+N+P",   "fen": "3nk/3p1/5/5/RR2K w - - 0 1" },
+    { "id": "a6-2r-vs-rp",     "size": "6x6", "player": "K+2R",    "enemy": "K+R+P",   "fen": "3r1k/4p1/6/6/6/RR3K w - - 0 1" },
+    { "id": "b6-q2r-vs-rp",    "size": "6x6", "player": "K+Q+2R",  "enemy": "K+R+P",   "fen": "3r1k/4p1/6/6/6/QRR2K w - - 0 1" },
+    { "id": "c6-2rp-vs-rp",    "size": "6x6", "player": "K+2R+P",  "enemy": "K+R+P",   "fen": "3r1k/4p1/6/6/4P1/RR3K w - - 0 1" },
+    { "id": "d6-2r-vs-np",     "size": "6x6", "player": "K+2R",    "enemy": "K+N+P",   "fen": "3n1k/4p1/6/6/6/RR3K w - - 0 1" },
+    { "id": "e6-qr-vs-rp",     "size": "6x6", "player": "K+Q+R",   "enemy": "K+R+P",   "fen": "3r1k/4p1/6/6/6/RQ3K w - - 0 1" },
+    { "id": "f6-2rb-vs-rp",    "size": "6x6", "player": "K+2R+B",  "enemy": "K+R+P",   "fen": "3r1k/4p1/6/6/6/RRB2K w - - 0 1" },
+    { "id": "a7-q2r-vs-rp",    "size": "7x7", "player": "K+Q+2R",  "enemy": "K+R+P",   "fen": "3r2k/5p1/7/7/7/7/QRR3K w - - 0 1" },
+    { "id": "b7-2r-vs-rp",     "size": "7x7", "player": "K+2R",    "enemy": "K+R+P",   "fen": "3r2k/5p1/7/7/7/7/RR4K w - - 0 1" },
+    { "id": "c7-q2r-vs-rnp",   "size": "7x7", "player": "K+Q+2R",  "enemy": "K+R+N+P", "fen": "3rn1k/5p1/7/7/7/7/QRR3K w - - 0 1" },
+    { "id": "d7-2rn-vs-rp",    "size": "7x7", "player": "K+2R+N",  "enemy": "K+R+P",   "fen": "3r2k/5p1/7/7/7/7/RRN3K w - - 0 1" },
+    { "id": "a8-q2r-vs-rp",    "size": "8x8", "player": "K+Q+2R",  "enemy": "K+R+P",   "fen": "3r2k1/5p2/8/8/8/8/8/QRR3K1 w - - 0 1" },
+    { "id": "b8-2r-vs-rp",     "size": "8x8", "player": "K+2R",    "enemy": "K+R+P",   "fen": "3r2k1/5p2/8/8/8/8/8/RR4K1 w - - 0 1" },
+    { "id": "c8-q2rb-vs-rp",   "size": "8x8", "player": "K+Q+2R+B","enemy": "K+R+P",   "fen": "3r2k1/5p2/8/8/8/8/8/QRRB2K1 w - - 0 1" },
+    { "id": "d8-q2r-vs-rnp",   "size": "8x8", "player": "K+Q+2R",  "enemy": "K+R+N+P", "fen": "3rn1k1/5p2/8/8/8/8/8/QRR3K1 w - - 0 1" }
+  ]
+}

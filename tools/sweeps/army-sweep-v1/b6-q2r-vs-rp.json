@@ -1,0 +1,735 @@
+{
+ "meta": {
+  "harness": "v1",
+  "label": "b6-q2r-vs-rp",
+  "fen": "3r1k/4p1/6/6/6/QRR2K w - - 0 1",
+  "width": 6,
+  "height": 6,
+  "gamesRequested": 100,
+  "movetime": 250,
+  "elo": 1000,
+  "cap": 140,
+  "earlyStopBelow": 0.55,
+  "minGames": 24,
+  "seed": null,
+  "perSideEngines": true,
+  "ini": "[harness:chess]\nmaxFile = 6\nmaxRank = 6\npromotionRegionWhite = *6\npromotionRegionBlack = *1\ncastling = false\ndoubleStep = false\nstalemateValue = loss\nnFoldValue = loss",
+  "wallSeconds": 226.715,
+  "node": "v22.22.2",
+  "date": "2026-07-07T18:55:03.208Z"
+ },
+ "summary": {
+  "gamesPlayed": 100,
+  "checkmateOnlyWinrate": 0.92,
+  "ci95": 0.05317346706770209,
+  "avgMoves": 6.33,
+  "tally": {
+   "checkmate->player": 92,
+   "stalemate->player": 7,
+   "draw": 1
+  },
+  "stoppedEarly": false
+ },
+ "games": [
+  {
+   "game": 1,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 9,
+   "moves": "c1e1 d6d4 a1d4 e5d4 b1b6 f6f5 b6b2 d4d3 b2f2"
+  },
+  {
+   "game": 2,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 21,
+   "moves": "a1a3 d6d4 f1e2 d4e4 e2d2 e4d4 d2e2 d4e4 e2d2 e4d4 d2e3 f6e6 b1b6 e6f5 c1f1 d4f4 a3d3 e5e4 f1f4 f5e5 d3b5"
+  },
+  {
+   "game": 3,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 13,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 e1c1 e5e4 d3e4 e6d6 a1f6"
+  },
+  {
+   "game": 4,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 5,
+   "moves": "b1b5 d6e6 a1c3 f6f5 c3f3"
+  },
+  {
+   "game": 5,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 33,
+   "moves": "a1a3 d6d4 a3e3 f6f5 e3b3 d4f4 f1e2 f4e4 e2f2 e4f4 f2e1 f4e4 e1d2 e4d4 d2c3 f5e4 c3b2 d4d2 b2a1 d2d4 b3c2 d4d3 c1e1 e4f5 c2d3 e5e4 b1b5 f5e6 b5b6 e6f5 e1f1 f5e5 d3d6"
+  },
+  {
+   "game": 6,
+   "end": "stalemate",
+   "winner": "player",
+   "plies": 17,
+   "moves": "a1a3 d6d4 a3e3 f6f5 b1b5 d4e4 e3b3 e4f4 f1e2 f4e4 b3e3 e4e3 e2e3 f5f6 c1c6 f6f5 b5d5"
+  },
+  {
+   "game": 7,
+   "end": "stalemate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "a1a3 d6d4 a3e3 f6f5 c1c5 d4f4 f1e2 f4e4 b1b6 e4e3 e2e3"
+  },
+  {
+   "game": 8,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 5,
+   "moves": "b1b5 d6e6 a1c3 f6f5 c3f3"
+  },
+  {
+   "game": 9,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 5,
+   "moves": "b1b5 d6e6 a1c3 f6f5 c3f3"
+  },
+  {
+   "game": 10,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 29,
+   "moves": "a1a3 d6d4 f1e2 d4e4 e2d2 e4d4 d2e2 d4e4 e2d1 e4d4 d1c2 d4c4 c2d2 c4d4 d2e3 f6f5 c1f1 f5e6 b1b6 e6d5 a3a5 d5c4 a5b4 c4d5 b4d6 d5c4 d6b4 c4d5 b4b5"
+  },
+  {
+   "game": 11,
+   "end": "stalemate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "a1a3 d6d4 a3e3 f6f5 c1c5 d4f4 f1e2 f4e4 b1b6 e4e3 e2e3"
+  },
+  {
+   "game": 12,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 5,
+   "moves": "b1b5 d6e6 a1c3 f6f5 c3f3"
+  },
+  {
+   "game": 13,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 15,
+   "moves": "a1a3 d6d4 b1b5 f6f5 f1e2 d4e4 e2d2 e4d4 a3d3 d4d3 d2d3 f5f6 b5b6 f6f5 c1f1"
+  },
+  {
+   "game": 14,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 19,
+   "moves": "f1e2 d6d4 a1a3 d4e4 e2d2 e4d4 d2e2 d4e4 e2d2 e4d4 d2e3 f6e6 b1b6 e6f5 c1f1 d4f4 a3d3 e5e4 d3d5"
+  },
+  {
+   "game": 15,
+   "end": "stalemate",
+   "winner": "player",
+   "plies": 15,
+   "moves": "a1a3 d6d4 a3b3 d4f4 f1e2 f4e4 b3e3 f6f5 b1b5 e4e3 e2e3 f5f6 b5b6 f6f5 c1c5"
+  },
+  {
+   "game": 16,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 9,
+   "moves": "c1e1 d6d4 a1d4 e5d4 b1b6 f6f5 b6b2 d4d3 b2f2"
+  },
+  {
+   "game": 17,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1c6 f6f5 a1e1 f5f4 e1e4"
+  },
+  {
+   "game": 18,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 b5b6 e6d5 a1e5"
+  },
+  {
+   "game": 19,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 7,
+   "moves": "b1b5 d6e6 f1e2 f6f5 a1b1 f5f6 c1f1"
+  },
+  {
+   "game": 20,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 13,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 e1c1 e5e4 d3e4 e6d6 a1f6"
+  },
+  {
+   "game": 21,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 5,
+   "moves": "b1b5 d6e6 a1c3 f6f5 c3f3"
+  },
+  {
+   "game": 22,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 49,
+   "moves": "a1a3 d6d4 b1b5 d4f4 f1e2 f4e4 e2f2 e4f4 f2e1 f4e4 e1d1 e4d4 a3d3 d4d3 d1e2 d3d4 c1c5 d4e4 e2f2 f6f5 b5b3 f5e6 b3b1 e4a4 b1b5 a4e4 f2f3 e4e1 f3f2 e1e4 f2f3 e4e1 c5c6 e6f5 b5b6 e5e4 f3f2 e4e3 f2e1 f5e4 e1e2 e4e5 c6d6 e5f5 b6b5 f5e4 b5a5 e4f4 d6d4"
+  },
+  {
+   "game": 23,
+   "end": "stalemate",
+   "winner": "player",
+   "plies": 13,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 e1c1 e5e4 d3e4 e6d6 a1a2"
+  },
+  {
+   "game": 24,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 13,
+   "moves": "f1e2 d6d4 a1a5 d4e4 e2f3 e4f4 f3e3 f6f5 a5d5 f5f6 c1c6 f6f5 d5e6"
+  },
+  {
+   "game": 25,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 13,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 e1c1 e5e4 d3e4 e6d6 a1a6"
+  },
+  {
+   "game": 26,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 13,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 e1c1 e5e4 d3e4 e6d6 a1f6"
+  },
+  {
+   "game": 27,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 5,
+   "moves": "b1b5 d6e6 a1c3 f6f5 c3f3"
+  },
+  {
+   "game": 28,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 d3d2 e5e4 a1e5"
+  },
+  {
+   "game": 29,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 b5b6 e6d5 a1a5"
+  },
+  {
+   "game": 30,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 9,
+   "moves": "b1b5 d6e6 f1e2 f6f5 c1f1 f5e4 a1b1 e4d4 b1b4"
+  },
+  {
+   "game": 31,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 9,
+   "moves": "b1b5 d6e6 f1e2 f6f5 c1f1 f5e4 a1b1 e4d4 b1d3"
+  },
+  {
+   "game": 32,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 19,
+   "moves": "a1a3 d6d4 a3b3 d4f4 f1e1 f4e4 e1d1 e4d4 d1e1 d4d6 b1b2 d6d4 b2f2 d4f4 c1c6 f6f5 b3d3 e5e4 d3d5"
+  },
+  {
+   "game": 33,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "a1a3 d6d4 a3e3 f6f5 c1c6 d4a4 e3d3 e5e4 b1b5 f5f4 c6f6"
+  },
+  {
+   "game": 34,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 23,
+   "moves": "f1e2 d6d4 a1a3 d4e4 e2f2 e4f4 f2e2 f4e4 e2f2 e4f4 f2e3 f4d4 c1f1 d4f4 f1c1 f4d4 c1f1 d4f4 a3c5 f4f3 f1f3 f6e6 b1b6"
+  },
+  {
+   "game": 35,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 7,
+   "moves": "c1e1 d6d4 a1d4 e5d4 b1b2 d4d3 b2f2"
+  },
+  {
+   "game": 36,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 17,
+   "moves": "a1a3 d6d4 b1b5 d4f4 f1e2 f4e4 e2f2 e4f4 f2e3 f6f5 a3d3 f4e4 d3e4 f5f6 e3d2 f6e6 b5b6"
+  },
+  {
+   "game": 37,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 9,
+   "moves": "b1b5 d6e6 f1e2 f6f5 c1f1 f5e4 a1b1 e4d4 b1d3"
+  },
+  {
+   "game": 38,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 9,
+   "moves": "c1e1 d6d4 a1d4 e5d4 b1b6 f6f5 b6b2 d4d3 b2f2"
+  },
+  {
+   "game": 39,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 19,
+   "moves": "a1a3 d6d4 f1e2 d4e4 e2d2 e4d4 d2c2 d4c4 c2d3 c4d4 d3c3 f6e6 c1f1 d4f4 f1f4 e5e4 b1b6 e6d5 a3a5"
+  },
+  {
+   "game": 40,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 9,
+   "moves": "c1e1 d6d4 b1b6 f6f5 a1d4 e5d4 b6b2 d4d3 b2f2"
+  },
+  {
+   "game": 41,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 d3d2 e5e4 a1e5"
+  },
+  {
+   "game": 42,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 9,
+   "moves": "b1b5 d6e6 f1e2 f6f5 c1f1 f5e4 a1b1 e4d4 b1d3"
+  },
+  {
+   "game": 43,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 5,
+   "moves": "b1b5 d6e6 a1c3 f6f5 c3f3"
+  },
+  {
+   "game": 44,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 5,
+   "moves": "b1b5 d6e6 a1c3 f6f5 c3f3"
+  },
+  {
+   "game": 45,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 b5b6 e6d5 e1e5"
+  },
+  {
+   "game": 46,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 5,
+   "moves": "b1b5 d6e6 a1c3 f6f5 c3f3"
+  },
+  {
+   "game": 47,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 9,
+   "moves": "c1e1 d6d4 b1b6 f6f5 a1d4 e5d4 b6b2 d4d3 b2f2"
+  },
+  {
+   "game": 48,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 b5b6 e6d5 e1e5"
+  },
+  {
+   "game": 49,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 5,
+   "moves": "b1b5 d6e6 a1c3 f6f5 c3f3"
+  },
+  {
+   "game": 50,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 13,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 e1c1 e5e4 d3e4 e6d6 a1a6"
+  },
+  {
+   "game": 51,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 9,
+   "moves": "c1e1 d6d4 b1b6 f6f5 a1d4 e5d4 b6b2 d4d3 b2f2"
+  },
+  {
+   "game": 52,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 23,
+   "moves": "a1a3 d6d4 b1b5 f6f5 a3c5 d4f4 f1e2 f4e4 e2d2 f5e6 b5b6 e6f5 b6d6 e4d4 d2c3 d4f4 c5e3 f4d4 c1f1 d4f4 f1f4 e5f4 e3e6"
+  },
+  {
+   "game": 53,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 19,
+   "moves": "a1a3 d6d4 f1e2 d4e4 e2d2 e4d4 d2e2 d4e4 e2f3 e4f4 f3e3 f4d4 c1f1 f6e6 b1b6 e6d5 a3a5 d5c4 f1c1"
+  },
+  {
+   "game": 54,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1c6 f6f5 a1e1 f5f4 e1e4"
+  },
+  {
+   "game": 55,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 7,
+   "moves": "c1e1 d6d4 a1d4 e5d4 b1b2 d4d3 b2f2"
+  },
+  {
+   "game": 56,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 7,
+   "moves": "c1e1 d6d4 a1d4 e5d4 b1b2 d4d3 b2f2"
+  },
+  {
+   "game": 57,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 31,
+   "moves": "a1a3 d6d4 f1e2 d4e4 e2d2 e4d4 d2e2 d4e4 e2d1 e4d4 d1c2 d4c4 c2d3 c4d4 d3c3 d4e4 c1f1 e4f4 f1f4 e5f4 a3d6 f6f5 d6d5 f5f6 d5c6 f6f5 c6d5 f5f6 d5c6 f6e5 b1b5"
+  },
+  {
+   "game": 58,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 7,
+   "moves": "c1e1 d6d4 a1d4 e5d4 b1b2 d4d3 b2f2"
+  },
+  {
+   "game": 59,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 13,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 e1c1 e5e4 d3e4 e6d6 a1f6"
+  },
+  {
+   "game": 60,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 9,
+   "moves": "c1e1 d6d4 b1b6 f6f5 a1d4 e5d4 b6b2 d4d3 b2f2"
+  },
+  {
+   "game": 61,
+   "end": "draw",
+   "winner": null,
+   "plies": 11,
+   "moves": "b1b5 d6e6 f1e2 f6f5 a1b1 f5f6 b1a1 f6f5 e2e3 f5f6 e3e2"
+  },
+  {
+   "game": 62,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 17,
+   "moves": "f1e2 d6d4 a1a3 d4e4 e2f2 e4f4 f2e3 f4d4 b1b6 f6f5 c1f1 d4f4 a3d3 e5e4 f1f4 f5e5 d3d6"
+  },
+  {
+   "game": 63,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 b5b6 e6d5 a1a5"
+  },
+  {
+   "game": 64,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 17,
+   "moves": "a1a3 d6d4 b1b5 f6f5 a3b3 d4f4 f1e2 f4e4 e2d2 e4d4 d2e3 d4f4 b3d3 f4e4 d3e4 f5f6 b5b6"
+  },
+  {
+   "game": 65,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 15,
+   "moves": "c1e1 d6d4 b1b6 f6f5 a1b1 e5e4 b1b5 d4d5 b5d5 f5f4 d5d4 f4f5 b6b5 f5f4 d4e3"
+  },
+  {
+   "game": 66,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 17,
+   "moves": "a1a3 d6d4 b1b5 d4f4 f1e1 f4e4 e1f2 e4d4 a3e3 d4d2 e3d2 f6e6 d2e2 e5e4 e2e4 e6f6 e4c6"
+  },
+  {
+   "game": 67,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 13,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 e1c1 e5e4 d3e4 e6d6 a1f6"
+  },
+  {
+   "game": 68,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 19,
+   "moves": "a1a3 d6d4 f1e2 d4e4 e2d2 e4d4 d2e1 d4e4 e1f2 e4f4 f2e2 f6f5 a3d3 f4e4 e2d2 f5f6 d3e4 f6e6 c1c6"
+  },
+  {
+   "game": 69,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 9,
+   "moves": "c1e1 d6d4 a1d4 e5d4 b1b6 f6f5 b6b2 d4d3 b2f2"
+  },
+  {
+   "game": 70,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 b5b6 e6d5 a1a5"
+  },
+  {
+   "game": 71,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 21,
+   "moves": "a1a3 d6d4 f1e2 d4e4 e2d2 e4d4 d2e2 d4e4 e2d2 e4d4 d2e3 f6e6 c1c6 e6f5 b1f1 d4f4 f1f4 e5f4 e3d4 f4f3 a3f3"
+  },
+  {
+   "game": 72,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1c6 f6f5 a1e1 f5f4 e1e4"
+  },
+  {
+   "game": 73,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 17,
+   "moves": "a1a3 d6d4 a3b3 d4f4 f1e2 f4e4 e2d2 e4d4 d2e3 f6f5 b3c2 f5e6 b1b6 d4d6 b6d6 e6d6 c2c6"
+  },
+  {
+   "game": 74,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 13,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 e1c1 e5e4 d3e4 e6d6 a1f6"
+  },
+  {
+   "game": 75,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 b5b6 e6d5 e1e5"
+  },
+  {
+   "game": 76,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 13,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 e1c1 e5e4 d3e4 e6d6 a1f6"
+  },
+  {
+   "game": 77,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 7,
+   "moves": "b1b5 d6e6 f1e2 f6f5 c1f1 f5e4 a1a4"
+  },
+  {
+   "game": 78,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 d3d2 e5e4 a1a6"
+  },
+  {
+   "game": 79,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 d3d2 e5e4 a1a6"
+  },
+  {
+   "game": 80,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 15,
+   "moves": "a1a3 d6d4 b1b5 d4f4 f1e2 f4e4 e2f2 e4f4 f2e3 f6f5 a3d3 f4e4 d3e4 f5f6 b5b6"
+  },
+  {
+   "game": 81,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 15,
+   "moves": "a1a3 d6d4 a3c5 d4f4 f1e2 f4e4 e2d2 e4d4 c5d4 f6e6 b1b5 e5e4 d4e4 e6f6 c1c6"
+  },
+  {
+   "game": 82,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 7,
+   "moves": "b1b5 d6e6 f1e2 f6f5 c1f1 f5e4 a1a4"
+  },
+  {
+   "game": 83,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 13,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 e1c1 e5e4 d3e4 e6d6 a1f6"
+  },
+  {
+   "game": 84,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 7,
+   "moves": "c1e1 d6d4 a1d4 e5d4 b1b2 d4d3 b2f2"
+  },
+  {
+   "game": 85,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 5,
+   "moves": "b1b5 d6e6 a1c3 f6f5 c3f3"
+  },
+  {
+   "game": 86,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 9,
+   "moves": "c1e1 d6d4 a1d4 e5d4 b1b6 f6f5 b6b2 d4d3 b2f2"
+  },
+  {
+   "game": 87,
+   "end": "stalemate",
+   "winner": "player",
+   "plies": 37,
+   "moves": "a1a3 d6d4 b1b5 d4f4 f1e1 f4e4 e1f1 e4f4 a3f3 f4f3 f1e2 f3f4 e2d2 f4a4 c1c3 a4e4 c3d3 f6f5 d3e3 f5f4 e3e4 f4e4 d2c3 e4f4 c3d3 e5e4 d3d4 f4f3 b5f5 f3e2 d4c3 e4e3 c3c2 e2e1 c2d3 e3e2 d3c2"
+  },
+  {
+   "game": 88,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 9,
+   "moves": "c1e1 d6d4 b1b6 f6f5 a1d4 e5d4 b6b2 d4d3 b2f2"
+  },
+  {
+   "game": 89,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1c6 f6f5 a1e1 f5f4 e1e4"
+  },
+  {
+   "game": 90,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 7,
+   "moves": "c1e1 d6d4 a1d4 e5d4 b1b2 d4d3 b2f2"
+  },
+  {
+   "game": 91,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 25,
+   "moves": "a1a3 d6d4 a3b3 d4f4 f1e1 f4e4 e1f1 e4f4 f1e2 f4e4 e2d2 e4d4 d2c2 e5e4 b3c3 e4e3 c1f1 f6e5 b1b5 e5e6 f1f6 e6f6 c3c6 d4d6 c6d6"
+  },
+  {
+   "game": 92,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 13,
+   "moves": "c1e1 d6d4 b1b6 f6f5 a1b1 e5e4 b1b5 d4d5 b5d5 f5f4 d5d4 f4f5 d4e4"
+  },
+  {
+   "game": 93,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 5,
+   "moves": "b1b5 d6e6 a1c3 f6f5 c3f3"
+  },
+  {
+   "game": 94,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1c6 f6f5 a1e1 f5f4 e1e4"
+  },
+  {
+   "game": 95,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1c6 f6f5 a1e1 f5f4 e1e4"
+  },
+  {
+   "game": 96,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 11,
+   "moves": "f1e2 d6d4 c1c5 d4e4 e2d3 e4e1 b1e1 f6e6 d3d2 e5e4 a1e5"
+  },
+  {
+   "game": 97,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 7,
+   "moves": "b1b5 d6e6 f1e2 f6f5 c1f1 f5e4 a1a4"
+  },
+  {
+   "game": 98,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 5,
+   "moves": "b1b5 d6e6 a1c3 f6f5 c3f3"
+  },
+  {
+   "game": 99,
+   "end": "stalemate",
+   "winner": "player",
+   "plies": 17,
+   "moves": "a1a3 d6d4 b1b5 d4f4 f1e2 f4e4 e2f1 e4f4 f1e2 f4e4 a3e3 e4e3 e2e3 f6e6 c1c6 e6f5 e3f3"
+  },
+  {
+   "game": 100,
+   "end": "checkmate",
+   "winner": "player",
+   "plies": 13,
+   "moves": "f1e2 d6d4 b1b5 d4e4 e2d3 e4e1 c1e1 f6e6 e1c1 e5e4 d3e4 e6d6 a1f6"
+  }
+ ]
+}

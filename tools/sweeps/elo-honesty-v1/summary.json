@@ -1,0 +1,102 @@
+{
+  "meta": {
+    "spec": "elo-honesty-v1.spec.json",
+    "name": "elo-honesty-v1",
+    "defaults": {
+      "games": 40,
+      "movetime": 1000,
+      "cap": 140,
+      "earlyStopBelow": 0,
+      "fen": "3rk/5/5/5/RQ2K w - - 0 1",
+      "size": "5x5"
+    },
+    "workers": 3,
+    "node": "v22.22.2",
+    "date": "2026-07-07T19:41:07.024Z",
+    "note": "Does UCI_LimitStrength stay honest at the run's real pace (movetime 1000)? Control matchup: 5x5 K+Q+R vs K+R — the stalemate-prone point from the Session H findings (53% mate / 37% stalemate at Elo 1200, 100ms). Honest capping means the checkmate-only winrate is monotone in the cap (500 < 1000 < 1200 << full) and the capped side keeps its imperfections (stalemates/losses) at 1s. If capped ~= full here, the cap is not engaging and every calibration number is suspect."
+  },
+  "points": [
+    {
+      "id": "qr-vs-r-full",
+      "size": "5x5",
+      "player": "K+Q+R",
+      "enemy": "K+R",
+      "fen": "3rk/5/5/5/RQ2K w - - 0 1",
+      "elo": "full",
+      "movetime": 1000,
+      "gamesPlayed": 40,
+      "checkmateOnlyWinrate": 1,
+      "ci95": 0,
+      "avgMoves": 2.5,
+      "tally": {
+        "checkmate->player": 40
+      },
+      "stoppedEarly": false,
+      "wallSeconds": 15.997
+    },
+    {
+      "id": "qr-vs-r-elo1200",
+      "size": "5x5",
+      "player": "K+Q+R",
+      "enemy": "K+R",
+      "fen": "3rk/5/5/5/RQ2K w - - 0 1",
+      "elo": 1200,
+      "movetime": 1000,
+      "gamesPlayed": 40,
+      "checkmateOnlyWinrate": 0.65,
+      "ci95": 0.14781441066418388,
+      "avgMoves": 4.0625,
+      "tally": {
+        "checkmate->player": 26,
+        "stalemate->player": 13,
+        "insufficient-material": 1
+      },
+      "stoppedEarly": false,
+      "wallSeconds": 128.619
+    },
+    {
+      "id": "qr-vs-r-elo1000",
+      "size": "5x5",
+      "player": "K+Q+R",
+      "enemy": "K+R",
+      "fen": "3rk/5/5/5/RQ2K w - - 0 1",
+      "elo": 1000,
+      "movetime": 1000,
+      "gamesPlayed": 40,
+      "checkmateOnlyWinrate": 0.625,
+      "ci95": 0.15003124674546964,
+      "avgMoves": 4.625,
+      "tally": {
+        "checkmate->player": 25,
+        "stalemate->player": 13,
+        "draw": 2
+      },
+      "stoppedEarly": false,
+      "wallSeconds": 147.917
+    },
+    {
+      "id": "qr-vs-r-elo500",
+      "size": "5x5",
+      "player": "K+Q+R",
+      "enemy": "K+R",
+      "fen": "3rk/5/5/5/RQ2K w - - 0 1",
+      "elo": 500,
+      "movetime": 1000,
+      "gamesPlayed": 40,
+      "checkmateOnlyWinrate": 0.075,
+      "ci95": 0.08162582311989265,
+      "avgMoves": 13.6375,
+      "tally": {
+        "insufficient-material": 4,
+        "checkmate->defender": 18,
+        "checkmate->player": 3,
+        "draw": 6,
+        "stalemate->player": 1,
+        "stalemate->defender": 8
+      },
+      "stoppedEarly": false,
+      "wallSeconds": 693.521
+    }
+  ],
+  "failed": []
+}

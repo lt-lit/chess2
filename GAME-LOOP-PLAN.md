@@ -44,10 +44,17 @@ rejected — nothing but a factual checkmate satisfies.
 | 6×6 | player K+2R vs full K+R+P | 47% mate, 37% stalemate, ~19 moves |
 | 8×8 | heavy edge vs bare-ish king | mates rarely; games barely resolve |
 
+> *Superseded in absolute terms (2026-07-07): these are v0-runner numbers
+> (shared-hash inflation) at 100 ms — the hardened harness measures the same
+> reference FEN at 53–73%. The relative levers partially stand, with one
+> refined below; see "Sweep v1 results".*
+
 Levers, in order of impact:
 1. **Small boards.** The master dial. 5×5 ≈ 90% mate; each rank bigger halves it.
    *Cap board size at 8×8* (was: grow to 12×10). Big boards are where forcing
-   mate against a full engine goes to die.
+   mate against a full engine goes to die. *(Refined by Sweep v1: the size dial
+   governs **marginal** armies — queen-heavy force is size-robust across
+   6×6–8×8.)*
 2. **Stalemate-resistant matchups.** A rook ladder (2R) mates cleanly (90%); a
    lone queen stalemates (37%). Checkmate rate is a property of
    `(board, player army, enemy army)` — exactly what the harness measures.
@@ -82,6 +89,75 @@ Using FSF eval to catch stalemate-prone situations is a good idea, but only
 *upstream*: at generation time, reject matchups that don't convert to checkmate
 reliably (this sharpens the guardrail). A *live* referee that edits walls to steer
 the game was prototyped and shelved — see the graveyard.
+
+### Sweep v1 results (2026-07-07) — hardened harness
+
+> First measurements from the hardened harness (v1: per-side engine
+> instances, parallel sweep driver, futility stop — see `tools/README.md`):
+> a 20-point army sweep at movetime 250 ms / N=100 / nominal Elo 1000 (locked
+> decision #4), plus an Elo-honesty matrix at the run's real 1 s pace.
+> **Medium fidelity — directional; candidates still need 1 s confirmation
+> runs.** Full data: `tools/sweeps/army-sweep-v1/` and
+> `tools/sweeps/elo-honesty-v1/`.
+
+**Fidelity correction — the spike's absolute numbers were inflated.** Same
+reference FEN: ~90% (v0 runner, 100 ms) → 73% (v1 per-side engines, same
+settings) → 53% (v1 at 250 ms). The v0 single-instance shortcut let the
+capped player read the defender's full-strength hash entries, and longer
+movetime helps the full-strength defender more than the capped attacker.
+Both corrections push **down** — expect 1 s numbers at or below these.
+
+**Band anchors exist, and they're queen-heavy.** K+Q+2R vs K+R+P converts at
+92% (6×6), **99% (7×7)**, 91% (8×8). Enemy-band scaling works as designed:
+giving the defender a knight on top (K+R+N+P) drops it to 73–78%. No
+non-queen army cleared 60%.
+
+**The size dial governs *marginal* armies.** K+2R vs K+R+P collapses
+36% → 13% → 0% → 0% across 5×5→8×8 (the spike's halving, and then some) —
+but Q+2R barely notices size (92/99/91). Conversion is a property of the
+*matchup*; shrinking the board amplifies a strong army, it doesn't rescue a
+weak one.
+
+**The rook ladder is dead at the honest yardstick.** "2R mates cleanly" does
+not survive per-side engines + Elo 1000 + a defender that keeps a pawn: the
+stand-in trades a rook or sheds material, games rot into move-caps and
+insufficient-material draws — and on 7×7/8×8 the full-strength defender
+*mates the player* in a nontrivial share of games.
+
+**Stalemate-wins are the top leak even on anchors** — 1–20% of games end
+stalemate→player (a board win, a run **loss** under checkmate-only scoring).
+The cautionary tale: adding a bishop to the 8×8 anchor (K+Q+2R+B) made
+conversion *worse* (76% vs 91%) by doubling suffocation. **More material is
+not monotonically good under checkmate-only scoring** — every shop offer must
+be harness-vetted, not assumed helpful. This sharpens "shop design is
+load-bearing" from a curation principle into a measurement requirement.
+
+**`UCI_Elo` capping is honest at 1 s — and coarse.** On the stalemate-prone
+control (5×5 K+Q+R vs K+R, movetime 1000): 8% (Elo 500) → 63% (1000) → 65%
+(1200) → 100% in 2.5 moves (uncapped). Monotone, imperfect exactly where a
+stand-in should be (the Elo-500 player gets *mated* in 18/40 games), and the
+uncapped control proves the positions are certain wins played well. But
+1000 vs 1200 measures within noise everywhere it was tried (the reference
+continuity pair agrees: 54% vs 53%) — the yardstick plateaus in the middle
+band, so act difficulty must come from matchups, never from small Elo nudges.
+
+**Start-position eval/WDL cannot confirm convertibility (negative result).**
+Probing every sweep point at fixed depth with `UCI_ShowWDL`: nearly all
+score win≈1000‰ — including points that measured 0% and 21%. The full
+engine answers "is this winnable?", not "will the capped stand-in deliver
+mate?". Consequence for the runtime guardrails: the WDL screen is a junk
+floor only (win < ~900‰ ⇒ certainly reject); the load-bearing per-instance
+check is the fast-play convertibility screen (`tools/screen.cjs`, quiet
+cores — fixed-movetime search weakens under CPU contention) or matchup-band
+membership from the offline sweeps.
+
+**Consequence for the difficulty math.** At the honest yardstick the
+~94%-average band is currently reachable only by queen-heavy armies against
+R+P-class defenders, and only 7×7 cleared 95%. Act 1's ~98% rounds need an
+easier enemy band (bare K+R, K+P — next sweep) or a heavier reference army;
+act-4/boss bands can draw from the R+N+P tier (73–78%) and below. The
+hockey-stick curve gets rebuilt from these anchors once 1 s confirmation
+runs land.
 
 ### Shelved for v1 — the mechanic graveyard (don't re-litigate)
 
@@ -129,12 +205,23 @@ it fought the checkmate-only goal*. Recorded so future sessions don't rebuild th
 
 ### Still to do in the actual Session H build
 
-- Harden the harness (larger N, real 1s movetime, parallel workers, seedable).
-- The generation-time **checkmate-rate screen** (eval or fast-play) as a guardrail.
-- **Army sweeps** on ≤8×8 to find matchups that clear ~95%+ checkmate for the
-  reference army; feed the per-act bands.
-- Confirm `UCI_LimitStrength` capping stays honest at 1s movetime (it demonstrably
-  *engages* on custom variants — the 1200 stand-in plays weak and even loses).
+- ~~Harden the harness (larger N, real 1s movetime, parallel workers, seedable).~~
+  **Done (2026-07-07):** per-side engine instances, parallel sweep driver with
+  a Wilson-bound futility stop, `--seed` recorded in results (engine-side
+  stochasticity is not seedable over UCI; the flag is reserved for
+  harness-level randomization once Session G generates placements).
+- ~~The generation-time **checkmate-rate screen** (eval or fast-play) as a
+  guardrail.~~ **Built (`tools/screen.cjs`) — with a measured caveat:** the
+  eval/WDL half is a junk floor only; fast-play on quiet cores is the
+  confirming half. See "Sweep v1 results".
+- ~~Confirm `UCI_LimitStrength` capping stays honest at 1s movetime.~~
+  **Confirmed (2026-07-07):** monotone 8/63/65/100% across Elo 500/1000/1200/
+  full on the control point at movetime 1000 — `tools/sweeps/elo-honesty-v1/`.
+- **Army sweeps** on ≤8×8 — **first 20-point pass done (2026-07-07)**; anchors
+  found (the K+Q+2R family). Remaining: **1s confirmation runs on the
+  anchors**, the **easy-band sweep** for act 1's ~98% rounds (bare K+R / K+P
+  defenders, heavier player armies), and stalemate-leak reduction on the
+  anchor matchups.
 
 ## Vision
 
@@ -212,6 +299,10 @@ bail into a repetition or 50-move draw when worse. Two consequences:
   this bullet is superseded; crumble is shelved — see the mechanic graveyard.)*
 - Harness scoring is strict: **only a delivered checkmate counts as a player
   win** — draws *and* board-level stalemate-wins score as losses (Session H).
+- **First anchor data is in (Sweep v1, 2026-07-07):** at the honest yardstick
+  only queen-heavy matchups reach the band so far — the 94% average is
+  demanding but real (K+Q+2R vs K+R+P: 91–99% across 6×6–8×8). The curve
+  gets solved from `tools/sweeps/` data once 1s confirmation runs land.
 - Calibration happens **per act** (5 regimes: acts 1–4 + boss), not per round —
   13 per-round targets would explode the measurement matrix for no benefit.
   Within an act, difficulty climbs via the enemy-board band, not geometry.
@@ -255,10 +346,15 @@ milliseconds, regenerate on failure):
 2. **Connectivity** — flood fill over non-wall squares; the armies must be able
    to reach each other. A sealed board is an unwinnable staring contest.
 3. A single fixed-depth eval with `UCI_ShowWDL` — reject instances that land
-   wildly outside their target difficulty band.
+   wildly outside their target difficulty band. *(Demoted by Sweep v1: the
+   probe is a junk floor only — start-position WDL reads win≈1000‰ even on
+   matchups the stand-in converts 0% of the time. Guardrail #4 is the
+   load-bearing check.)*
 4. **Checkmate-convertibility screen (Session H)** — reject matchups that don't
-   convert to a *literal checkmate* reliably for the reference army (fast-play
-   or eval-based; this is the "referee" idea moved upstream to generation time,
+   convert to a *literal checkmate* reliably for the reference army (built:
+   `tools/screen.cjs`; the confirming signal is **fast-play on quiet cores**,
+   or membership in a sweep-validated band — eval-based screening measured
+   insufficient; this is the "referee" idea moved upstream to generation time,
    where it's neutral).
 
 Difficulty is *not* modeled from material or wall counts — chokepoints favor
@@ -462,15 +558,18 @@ The one genuine engine unknown left. Gates the whole non-rectangular premise.
 
 ### Session H — Calibration harness (de-risking spike)
 
-> **Status: spike complete (2026-07-03), hardening remains.** The de-risking
-> questions are answered, all in the app's favor: both WASMs drive under plain
-> Node, the capped-vs-full match loop works with ffish adjudication, and
-> `UCI_LimitStrength` demonstrably engages on custom small-board variants (the
-> capped stand-in plays weak — it stalemates, and occasionally loses). A v0
-> runner is committed at `tools/match-runner.cjs` (see `tools/README.md`).
-> Remaining for the full session: per-side engine instances, parallel workers,
-> real-movetime (1s) runs at honest N, `UCI_ShowWDL` plumbing, sweep outputs as
-> repo JSON, and the army sweeps from the findings block.
+> **Status: spike complete (2026-07-03); hardening + first sweeps done
+> (2026-07-07).** The de-risking questions are answered, all in the app's
+> favor: both WASMs drive under plain Node, the capped-vs-full match loop
+> works with ffish adjudication, and `UCI_LimitStrength` capping is verified
+> honest at the run's real 1s pace (monotone in Elo, uncapped control
+> converts 100%). The harness is now v1 — per-side engine instances, a
+> parallel sweep driver with futility stop, `UCI_ShowWDL` plumbing, and the
+> convertibility screen (`tools/screen.cjs`) — with sweep outputs committed
+> as repo JSON (`tools/sweeps/`). The first 20-point army sweep found the
+> band anchors (queen-heavy armies) and corrected the spike's inflated
+> absolute numbers — see "Sweep v1 results". Remaining to close the session:
+> 1s confirmation runs on the anchors and the act-1 easy-band sweep.
 
 Gates the no-manual-tuning premise. Independent of W (can develop on plain
 rectangles); build early per brief §6.

@@ -16,9 +16,15 @@
 //     40%), so fast-play only means something on quiet cores. Depth-based
 //     probes don't have that failure mode.
 //   - a single fixed-depth eval with UCI_ShowWDL from the start position
-//     (player to move), reported alongside; gate on it with --min-wdl. WDL is
-//     calibrated for standard chess, so on tiny boards treat the threshold as
-//     empirical — set from the sweep correlation, not from theory.
+//     (player to move), reported alongside; gate on it with --min-wdl.
+//     MEASURED (army-sweep-v1 correlation): start-position WDL does NOT
+//     predict conversion by the capped player — nearly every sweep point
+//     probes win~1000 per-mille, including points that measured 0-21%
+//     checkmate rate. The full engine answers "is this winnable?", not "will
+//     the Elo-1000 stand-in deliver mate?". So the probe is a cheap junk
+//     floor at best (win < ~900 = certainly reject); it can never CONFIRM a
+//     candidate. The confirming gate is fast-play on quiet cores, or
+//     membership in a sweep-validated matchup band.
 //
 // Exit code: 0 = pass, 1 = reject (scriptable, like validateFen).
 //

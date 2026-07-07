@@ -2,3 +2,6 @@
 scratchpad-*
 *.local.*
 .DS_Store
+
+# Harness run logs — transient; the committed JSON results are the record
+tools/sweeps/*.log
